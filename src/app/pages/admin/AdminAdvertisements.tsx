@@ -25,6 +25,7 @@ const API_URL = "http://localhost:4000";
 
 export function AdminAdvertisements() {
   const [isAdding, setIsAdding] = useState(false);
+  const [ads, setAds] = useState<any[]>([]);
   const [showPlacementDialog, setShowPlacementDialog] = useState(false);
   
   const [viewAd, setViewAd] = useState<any | null>(null);
@@ -45,6 +46,7 @@ export function AdminAdvertisements() {
     link: "#",
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [formErrors, setFormErrors] = useState<{ web?: string; tab?: string; mobile?: string }>({});
 
   const location = useLocation();
   const navigate = useNavigate();
