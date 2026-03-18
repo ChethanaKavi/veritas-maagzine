@@ -117,21 +117,27 @@ export function AdminDashboard() {
                   key={article.id}
                   className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
                 >
-                  <img
-                    src={article.webImage || article.image}
-                    alt={article.title}
-                    className="w-20 h-20 rounded-lg object-cover border-2 border-blue-100"
-                  />
+                  {article.coverImgUrl ? (
+                    <img
+                      src={article.coverImgUrl}
+                      alt={article.title}
+                      className="w-20 h-20 rounded-lg object-cover border-2 border-blue-100 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg border-2 border-blue-100 bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-8 h-8 text-blue-300" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <h3 className="font-semibold text-blue-900 mb-1 line-clamp-1">
                       {article.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {article.authorName}
+                      {article.magazine?.title || '—'}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Calendar className="w-3 h-3" />
-                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
+                      <span>{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : new Date(article.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -150,17 +156,23 @@ export function AdminDashboard() {
                   key={magazine.id}
                   className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
                 >
-                  <img
-                    src={magazine.coverImage}
-                    alt={magazine.title}
-                    className="w-16 h-24 rounded-lg object-cover border-2 border-blue-100"
-                  />
+                  {magazine.coverImage ? (
+                    <img
+                      src={magazine.coverImage}
+                      alt={magazine.title}
+                      className="w-16 h-24 rounded-lg object-cover border-2 border-blue-100 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-24 rounded-lg border-2 border-blue-100 bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-6 h-6 text-blue-300" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <h3 className="font-semibold text-blue-900 mb-1">
                       {magazine.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {magazine.issue}
+                      {magazine.publishedAt ? new Date(magazine.publishedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'}
                     </p>
                     <p className="text-xs text-gray-500">{new Date(magazine.createdAt).toLocaleDateString()}</p>
                   </div>
