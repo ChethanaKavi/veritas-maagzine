@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Magazine {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  coverImage    String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  publishedAt   DateTime?
+  isPublished   Boolean       @default(false)
+  isActive      Boolean       @default(true)
+  viewCount     Int?
+  articles      Article[]
+
+}
+
+model Article {
+  id           String        @id @default(cuid())
+  magazineId   String
+  title        String
+  content      String
+  coverImgUrl  String?
+  publishedAt  DateTime?
+  isPublished  Boolean       @default(false)
+  isActive     Boolean       @default(true)
+  viewCount    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  magazine     Magazine      @relation(fields: [magazineId], references: [id])
+  views        ArticleView[]
+  tags         Tag[]         @relation("ArticleToTag")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  articles  Article[] @relation("ArticleToTag")
+}
+
+model ArticleView {
+  id        String   @id @default(cuid())
+  articleId String
+  viewsAt   DateTime @default(now())
+  views     Int      @default(1)
+  article   Article  @relation(fields: [articleId], references: [id])
+}
+
+model Advertisement {
+  id               String    @id @default(cuid())
+  topic            String
+  description      String?
+  webImage         String?
+  tabImage         String?
+  mobileImage      String?
+  webImageWidth    Int?
+  tabImageWidth    Int?
+  mobileImageWidth Int?
+  area             String?
+  link             String?
+  active           Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  role         String
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+}
