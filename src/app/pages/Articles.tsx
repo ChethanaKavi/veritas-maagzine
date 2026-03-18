@@ -51,9 +51,6 @@ export function Articles() {
     return () => window.removeEventListener('resize', updateCols);
   }, []);
 
-  // Only show the first row of tiles (cols number of items)
-  const visibleArticles = currentArticles.slice(0, cols);
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -78,7 +75,7 @@ export function Articles() {
         <>
           <div className="mb-12">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {visibleArticles.map((article) => (
+              {currentArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>

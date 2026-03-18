@@ -103,7 +103,7 @@ export function AdminMagazines() {
       if (res.ok) {
         const saved = await res.json();
         if (editingId) {
-          setMagList((prev) => prev.map((m) => (m.cmmuanId === editingId ? saved : m)));
+          setMagList((prev) => prev.map((m) => (m.id === editingId ? saved : m)));
         } else {
           setMagList((prev) => [saved, ...prev]);
         }
@@ -144,13 +144,13 @@ export function AdminMagazines() {
     if (!confirmDeleteMag) return;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/magazines/${confirmDeleteMag.cmmuanId}`, {
+        const res = await fetch(`${API_BASE}/magazines/${confirmDeleteMag.id}`, {
           method: 'DELETE',
         });
         if (res.ok) {
           setMagList((prev) =>
             prev.map((m) =>
-              m.cmmuanId === confirmDeleteMag.cmmuanId ? { ...m, active: false } : m
+              m.id === confirmDeleteMag.id ? { ...m, isActive: false } : m
             )
           );
         }
@@ -169,14 +169,12 @@ export function AdminMagazines() {
     if (!confirmActivateMag) return;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/magazines/${confirmActivateMag.cmmuanId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active: true }),
+        const res = await fetch(`${API_BASE}/magazines/${confirmActivateMag.id}/activate`, {
+          method: 'POST',
         });
         if (res.ok) {
           const updated = await res.json();
-          setMagList((prev) => prev.map((m) => (m.cmmuanId === confirmActivateMag.cmmuanId ? updated : m)));
+          setMagList((prev) => prev.map((m) => (m.id === confirmActivateMag.id ? updated : m)));
         }
       } catch (e) {
         console.error('Failed to activate', e);
@@ -356,7 +354,7 @@ export function AdminMagazines() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredMagazines.map((magazine, index) => (
-                    <tr key={magazine.cmmuanId || `mag-${index}`} className="hover:bg-blue-50 transition-colors">
+                    <tr key={magazine.id || `mag-${index}`} className="hover:bg-blue-50 transition-colors">
                       <td className="px-6 py-4">
                         {magazine.coverImage && (
                           <img
@@ -373,14 +371,14 @@ export function AdminMagazines() {
                       <td className="px-6 py-4 text-sm text-gray-600">{magazine.publishedAt ? new Date(magazine.publishedAt).toLocaleDateString() : 'N/A'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">—</td>
                       <td className="px-6 py-4">
-                        {magazine.active === false ? (
+                        {magazine.isActive === false ? (
                           <span className="inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded">Inactive</span>
                         ) : (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Active</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {(magazine.date && new Date(magazine.date) <= new Date()) ? (
+                        {magazine.isPublished ? (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Yes</span>
                         ) : (
                           <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">No</span>
@@ -394,7 +392,7 @@ export function AdminMagazines() {
                           <button onClick={() => handleEditClick(magazine)} className="p-2 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
                             <Edit className="w-4 h-4 text-blue-600" />
                           </button>
-                          {magazine.active === false ? (
+                          {magazine.isActive === false ? (
                             <button onClick={() => handleActivateClick(magazine)} title="Activate" className="p-2 hover:bg-green-100 rounded-lg transition-colors">
                               <RotateCw className="w-4 h-4 text-green-600" />
                             </button>

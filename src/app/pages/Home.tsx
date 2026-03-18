@@ -45,8 +45,16 @@ export function Home() {
     })();
   }, []);
 
-  if (loading || !latestMagazine) {
+  if (loading) {
     return <div className="max-w-7xl mx-auto px-4 py-6">Loading...</div>;
+  }
+
+  if (!latestMagazine) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-6 text-center text-gray-500">
+        No magazines available yet.
+      </div>
+    );
   }
 
   // Get articles for the latest magazine

@@ -35,7 +35,7 @@ export const magazines: Magazine[] = [
     id: '1',
     title: 'Tech Innovator',
     description: 'Exploring the latest technological breakthroughs and innovations shaping our digital future. From AI to quantum computing, we cover it all.',
-    coverImage: 'https://images.unsplash.com/photo-1563722048330-7835165cad10?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/tech-mag/400/600',
     issue: 'March 2026',
     date: 'March 1, 2026',
     active: true,
@@ -44,7 +44,7 @@ export const magazines: Magazine[] = [
     id: '2',
     title: 'Business Quarterly',
     description: 'In-depth analysis of market trends, leadership strategies, and success stories from the world of business and entrepreneurship.',
-    coverImage: 'https://images.unsplash.com/photo-1576289412237-698ae5427f27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/biz-mag/400/600',
     issue: 'February 2026',
     date: 'February 1, 2026',
     active: true,
@@ -53,7 +53,7 @@ export const magazines: Magazine[] = [
     id: '3',
     title: 'Fashion Forward',
     description: 'The ultimate guide to contemporary style, runway trends, and the designers defining the future of fashion.',
-    coverImage: 'https://images.unsplash.com/photo-1760888938850-3bc6a925ae1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/fashion-mag/400/600',
     issue: 'January 2026',
     date: 'January 15, 2026',
     active: true,
@@ -62,7 +62,7 @@ export const magazines: Magazine[] = [
     id: '4',
     title: 'Nature & Wildlife',
     description: 'Stunning photography and compelling stories from the natural world, celebrating Earth\'s incredible biodiversity.',
-    coverImage: 'https://images.unsplash.com/photo-1723418919773-0064fc771abe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/nature-mag/400/600',
     issue: 'December 2025',
     date: 'December 20, 2025',
     active: true,
@@ -71,7 +71,7 @@ export const magazines: Magazine[] = [
     id: '5',
     title: 'Travel Explorer',
     description: 'Discover hidden destinations, cultural experiences, and adventure travel stories from around the globe.',
-    coverImage: 'https://images.unsplash.com/photo-1662466819269-baa6c42ac86c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/travel-mag/400/600',
     issue: 'November 2025',
     date: 'November 10, 2025',
     active: true,
@@ -80,7 +80,7 @@ export const magazines: Magazine[] = [
     id: '6',
     title: 'Culinary Arts',
     description: 'Celebrating the art of cooking with recipes, chef interviews, and the latest trends in food and beverage.',
-    coverImage: 'https://images.unsplash.com/photo-1635685731411-7167fe560c79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    coverImage: 'https://picsum.photos/seed/food-mag/400/600',
     issue: 'October 2025',
     date: 'October 5, 2025',
     active: true,
@@ -109,7 +109,7 @@ export const articles: Article[] = [
       <h2>Conclusion</h2>
       <p>The future of AI is not just about smarter machines—it's about creating systems that enhance human potential while respecting our values and diversity.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1725203653092-494c7eec1a30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/tech-art/800/500',
     magazineId: '1',
     author: 'Dr. Sarah Chen',
     date: 'March 5, 2026',
@@ -132,7 +132,7 @@ export const articles: Article[] = [
       <h2>The Road Forward</h2>
       <p>As technology advances, we're getting closer to quantum advantage—the point where quantum computers outperform classical ones on practical problems.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1725203653092-494c7eec1a30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/tech-art/800/500',
     magazineId: '1',
     author: 'Prof. Michael Park',
     date: 'March 3, 2026',
@@ -155,7 +155,7 @@ export const articles: Article[] = [
       <h2>Software Efficiency</h2>
       <p>Even software can be greener. Optimized code and efficient algorithms reduce energy consumption across billions of devices.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1725203653092-494c7eec1a30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/tech-art/800/500',
     magazineId: '1',
     author: 'Emma Rodriguez',
     date: 'March 1, 2026',
@@ -180,7 +180,7 @@ export const articles: Article[] = [
       <h2>Leading Through Change</h2>
       <p>Change is constant in the digital age. Great leaders help their teams embrace change rather than resist it.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1683516993458-528c4b34c5e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/biz-art/800/500',
     magazineId: '2',
     author: 'James Mitchell',
     date: 'February 25, 2026',
@@ -203,7 +203,7 @@ export const articles: Article[] = [
       <h2>Opportunities and Risks</h2>
       <p>While opportunities abound, geopolitical tensions and regulatory changes present risks that savvy investors must navigate.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1683516993458-528c4b34c5e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/biz-art/800/500',
     magazineId: '2',
     author: 'Rachel Thompson',
     date: 'February 20, 2026',
@@ -226,7 +226,7 @@ export const articles: Article[] = [
       <h2>Advice for Founders</h2>
       <p>Industry veterans share their insights on building sustainable, scalable businesses in competitive markets.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1683516993458-528c4b34c5e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/biz-art/800/500',
     magazineId: '2',
     author: 'Kevin Zhang',
     date: 'February 15, 2026',
@@ -251,7 +251,7 @@ export const articles: Article[] = [
       <h2>Standout Designers</h2>
       <p>This season's breakout designers are reimagining traditional silhouettes with modern techniques and sustainable practices.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1763750781876-d99c552c891c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/fashion-art/800/500',
     magazineId: '3',
     author: 'Isabella Moreau',
     date: 'January 28, 2026',
@@ -274,7 +274,7 @@ export const articles: Article[] = [
       <h2>The Future of Fashion</h2>
       <p>As virtual and physical worlds merge, fashion will exist seamlessly across both realms.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1763750781876-d99c552c891c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/fashion-art/800/500',
     magazineId: '3',
     author: 'Marcus Lee',
     date: 'January 22, 2026',
@@ -297,7 +297,7 @@ export const articles: Article[] = [
       <h2>Building Your Collection</h2>
       <p>Start with versatile neutrals, then add statement pieces that reflect your personal style.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1763750781876-d99c552c891c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/fashion-art/800/500',
     magazineId: '3',
     author: 'Sophia Anderson',
     date: 'January 18, 2026',
@@ -322,7 +322,7 @@ export const articles: Article[] = [
       <h2>Conservation Efforts</h2>
       <p>Scientists and conservationists are working to protect Arctic ecosystems and help wildlife adapt to a changing world.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1607268102039-3e470cf6e263?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/nature-art/800/500',
     magazineId: '4',
     author: 'Dr. Laura Winters',
     date: 'December 28, 2025',
@@ -345,7 +345,7 @@ export const articles: Article[] = [
       <h2>Hope for the Future</h2>
       <p>Indigenous communities and conservation organizations are leading efforts to protect and restore the rainforest.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1607268102039-3e470cf6e263?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/nature-art/800/500',
     magazineId: '4',
     author: 'Carlos Rivera',
     date: 'December 22, 2025',
@@ -368,7 +368,7 @@ export const articles: Article[] = [
       <h2>Conservation Success</h2>
       <p>Some whale populations are recovering thanks to international protection efforts, proving conservation works.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1607268102039-3e470cf6e263?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/nature-art/800/500',
     magazineId: '4',
     author: 'Dr. Marina Okazaki',
     date: 'December 20, 2025',
@@ -393,7 +393,7 @@ export const articles: Article[] = [
       <h2>Sustainable Travel Tips</h2>
       <p>Learn how to explore these destinations while supporting local communities and minimizing environmental impact.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1768555520607-cb29f2bc6394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/travel-art/800/500',
     magazineId: '5',
     author: 'Maya Patel',
     date: 'November 18, 2025',
@@ -416,7 +416,7 @@ export const articles: Article[] = [
       <h2>Practical Advice</h2>
       <p>Navigation, parking, tolls, and border crossings—everything you need to know for a smooth journey.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1768555520607-cb29f2bc6394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/travel-art/800/500',
     magazineId: '5',
     author: 'Thomas Mueller',
     date: 'November 12, 2025',
@@ -439,7 +439,7 @@ export const articles: Article[] = [
       <h2>Best Destinations</h2>
       <p>Some destinations are particularly welcoming for solo travelers. We highlight the best options for first-timers.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1768555520607-cb29f2bc6394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/travel-art/800/500',
     magazineId: '5',
     author: 'Elena Kowalski',
     date: 'November 10, 2025',
@@ -464,7 +464,7 @@ export const articles: Article[] = [
       <h2>Finding Farm-to-Table</h2>
       <p>How to identify authentic farm-to-table restaurants and support this important movement.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1676272650338-faaea8e5e5fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/culinary-art/800/500',
     magazineId: '6',
     author: 'Chef Antoine Dubois',
     date: 'October 15, 2025',
@@ -487,7 +487,7 @@ export const articles: Article[] = [
       <h2>Signature Dishes</h2>
       <p>Iconic street foods you must try, from Vietnamese banh mi to Mexican tacos al pastor.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1676272650338-faaea8e5e5fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/culinary-art/800/500',
     magazineId: '6',
     author: 'Priya Sharma',
     date: 'October 10, 2025',
@@ -510,7 +510,7 @@ export const articles: Article[] = [
       <h2>Restaurant Highlights</h2>
       <p>Leading plant-based restaurants proving that vegetables can be the star of fine dining.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1676272650338-faaea8e5e5fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/culinary-art/800/500',
     magazineId: '6',
     author: 'Marcus Green',
     date: 'October 5, 2025',
@@ -523,7 +523,7 @@ export const advertisements: Advertisement[] = [
     id: 'ad1',
     topic: 'Tech Conference 2026',
     description: 'Join us for the largest tech event of the year. Early bird tickets available now.',
-    image: 'https://images.unsplash.com/photo-1540575861501-7ce0e2204919?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/event-art/800/500',
     area: 'top-banner',
     link: '#',
   },
@@ -531,7 +531,7 @@ export const advertisements: Advertisement[] = [
     id: 'ad2',
     topic: 'Luxury Watches',
     description: 'Eleganace reinvented. Discover our new collection of premium timepieces.',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+    image: 'https://picsum.photos/seed/watch-art/800/500',
     area: 'sidebar',
     link: '#',
   }

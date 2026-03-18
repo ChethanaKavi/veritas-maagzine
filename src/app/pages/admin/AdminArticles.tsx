@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, Eye, Search, X, Upload, RotateCw } from "lucide-react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import { RichTextEditor } from "../../components/ui/RichTextEditor";
 import { articles as mockArticles, magazines as mockMagazines } from "../../data/mockData";
 import {
   Dialog,
@@ -262,21 +261,9 @@ export function AdminArticles() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Content</label>
-                <ReactQuill
+                <RichTextEditor
                   value={newArticle.content}
                   onChange={(html) => setNewArticle({ ...newArticle, content: html })}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      ['blockquote', 'code-block'],
-                      ['link', 'image'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['clean']
-                    ]
-                  }}
-                  theme="snow"
-                  style={{ height: '300px', marginBottom: '50px' }}
                 />
                 {articleErrors.content && <div className="text-red-600 text-sm mt-1">{articleErrors.content}</div>}
               </div>

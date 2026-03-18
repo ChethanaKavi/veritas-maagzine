@@ -29,10 +29,12 @@ export const initGA = (measurementId: string) => {
   window.gtag("config", measurementId);
 };
 
+const GA_MEASUREMENT_ID = 'G-JDT8YSE3TM';
+
 // Track page views
 export const trackPageView = (url: string) => {
   if (window.gtag) {
-    window.gtag("config", "GA_MEASUREMENT_ID", {
+    window.gtag('config', GA_MEASUREMENT_ID, {
       page_path: url,
     });
   }

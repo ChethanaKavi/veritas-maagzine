@@ -145,7 +145,7 @@ app.post('/magazines/:id/activate', async (req, res) => {
 });
 
 app.get('/articles', async (req, res) => {
-  const { published } = req.query;
+  const { published, magazineId } = req.query;
   try {
     if (published === 'true') {
       const arts = await prisma.article.findMany({
@@ -154,6 +154,7 @@ app.get('/articles', async (req, res) => {
           publishedAt: {
             lte: new Date(),
           },
+          ...(magazineId ? { magazineId: magazineId as string } : {}),
         },
         include: { views: true, magazine: true },
         orderBy: {
@@ -163,6 +164,9 @@ app.get('/articles', async (req, res) => {
       res.json(arts);
     } else {
       const arts = await prisma.article.findMany({
+        where: {
+          ...(magazineId ? { magazineId: magazineId as string } : {}),
+        },
         include: { views: true, magazine: true },
         orderBy: {
           createdAt: 'desc',
