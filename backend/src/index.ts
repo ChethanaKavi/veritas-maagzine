@@ -155,7 +155,7 @@ app.get('/articles', async (req, res) => {
             lte: new Date(),
           },
         },
-        include: { views: true },
+        include: { views: true, magazine: true },
         orderBy: {
           publishedAt: 'desc',
         },
@@ -163,7 +163,7 @@ app.get('/articles', async (req, res) => {
       res.json(arts);
     } else {
       const arts = await prisma.article.findMany({
-        include: { views: true },
+        include: { views: true, magazine: true },
         orderBy: {
           createdAt: 'desc',
         },
@@ -182,7 +182,7 @@ app.get('/articles/:id', async (req, res) => {
   try {
     const article = await prisma.article.findUnique({
       where: { id },
-      include: { views: true },
+      include: { views: true, magazine: true },
     });
     if (article) {
       res.json(article);
@@ -405,6 +405,47 @@ app.post('/advertisements/:id/activate', async (req, res) => {
   } catch (error) {
     console.error(`Error activating advertisement ${id}:`, error);
     res.status(500).json({ error: 'An error occurred while activating the advertisement' });
+  }
+});
+
+// Dashboard Stats
+app.get('/dashboard-stats', async (req, res) => {
+  try {
+    const totalMagazines = await prisma.magazine.count();
+    const totalArticles = await prisma.article.count();
+    const totalViews = await prisma.article.aggregate({
+      _sum: {
+        viewCount: true,
+      },
+    });
+
+    const recentArticles = await prisma.article.findMany({
+      take: 5,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+      include: {
+        magazine: true,
+      },
+    });
+
+    const recentMagazines = await prisma.magazine.findMany({
+      take: 5,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+
+    res.json({
+      totalMagazines,
+      totalArticles,
+      totalViews: totalViews._sum.viewCount || 0,
+      recentArticles,
+      recentMagazines,
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'An error occurred while fetching dashboard stats' });
   }
 });
 

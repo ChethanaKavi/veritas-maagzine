@@ -1,5 +1,5 @@
 import { AdminLayout } from "../../components/admin/AdminLayout";
-import { magazines, articles } from "../../data/mockData";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -11,41 +11,65 @@ import {
 } from "lucide-react";
 
 export function AdminDashboard() {
-  // Mock analytics data
-  const stats = [
+  const [stats, setStats] = useState<any>({});
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [recentMagazines, setRecentMagazines] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch("/api/dashboard-stats");
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+        const data = await response.json();
+        setStats({
+          totalMagazines: data.totalMagazines,
+          totalArticles: data.totalArticles,
+          totalViews: data.totalViews,
+          activeReaders: data.activeReaders, // This is a mock value for now
+        });
+        setRecentArticles(data.recentArticles);
+        setRecentMagazines(data.recentMagazines);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const statsCards = [
     {
       label: "Total Magazines",
-      value: magazines.length,
+      value: stats.totalMagazines,
       icon: BookOpen,
       color: "bg-blue-500",
       change: "+2 this month",
     },
     {
       label: "Total Articles",
-      value: articles.length,
+      value: stats.totalArticles,
       icon: FileText,
       color: "bg-green-500",
       change: "+6 this month",
     },
     {
       label: "Total Views",
-      value: "24,532",
+      value: stats.totalViews,
       icon: Eye,
       color: "bg-purple-500",
       change: "+12.5% vs last month",
     },
     {
       label: "Active Readers",
-      value: "8,429",
+      value: "8,429", // Mock data
       icon: Users,
       color: "bg-orange-500",
       change: "+8.2% vs last month",
     },
   ];
-
-  // Recent articles
-  const recentArticles = articles.slice(0, 5);
-  const navigate = useNavigate();
 
   return (
     <AdminLayout>
@@ -55,7 +79,7 @@ export function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => {
+          {statsCards.map((stat) => {
             const Icon = stat.icon;
             return (
               <div
@@ -71,7 +95,7 @@ export function AdminDashboard() {
                 <div>
                   <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
                   <p className="text-3xl font-bold text-blue-900 mb-1">
-                    {stat.value}
+                    {stat.value ?? "0"}
                   </p>
                   <p className="text-xs text-green-600">{stat.change}</p>
                 </div>
@@ -94,7 +118,7 @@ export function AdminDashboard() {
                   className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
                 >
                   <img
-                    src={article.image}
+                    src={article.webImage || article.image}
                     alt={article.title}
                     className="w-20 h-20 rounded-lg object-cover border-2 border-blue-100"
                   />
@@ -103,11 +127,11 @@ export function AdminDashboard() {
                       {article.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {article.author}
+                      {article.authorName}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Calendar className="w-3 h-3" />
-                      <span>{article.date}</span>
+                      <span>{new Date(article.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -121,7 +145,7 @@ export function AdminDashboard() {
               Recent Magazines
             </h2>
             <div className="space-y-4">
-              {magazines.slice(0, 3).map((magazine) => (
+              {recentMagazines.map((magazine) => (
                 <div
                   key={magazine.id}
                   className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
@@ -138,7 +162,7 @@ export function AdminDashboard() {
                     <p className="text-sm text-gray-600 mb-2">
                       {magazine.issue}
                     </p>
-                    <p className="text-xs text-gray-500">{magazine.date}</p>
+                    <p className="text-xs text-gray-500">{new Date(magazine.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}

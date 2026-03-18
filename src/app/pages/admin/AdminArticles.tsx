@@ -117,7 +117,7 @@ export function AdminArticles() {
       if (res.ok) {
         const saved = await res.json();
         if (editingId) {
-          setArticleList((prev) => prev.map((a) => (a.articleId === editingId ? saved : a)));
+          setArticleList((prev) => prev.map((a) => (a.id === editingId ? saved : a)));
         } else {
           setArticleList((prev) => [saved, ...prev]);
         }
@@ -138,7 +138,7 @@ export function AdminArticles() {
 
   const handleEditClick = (article: any) => {
     setIsAdding(true);
-    setEditingId(article.articleId);
+    setEditingId(article.id);
     setNewArticle({
       title: article.title,
       content: article.content,
@@ -157,13 +157,13 @@ export function AdminArticles() {
   const confirmDelete = async () => {
     if (!confirmDeleteArticle) return;
     try {
-      const res = await fetch(`${API_BASE}/articles/${confirmDeleteArticle.articleId}`, {
+      const res = await fetch(`${API_BASE}/articles/${confirmDeleteArticle.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         setArticleList((prev) =>
           prev.map((a) =>
-            a.articleId === confirmDeleteArticle.articleId ? { ...a, active: false } : a
+            a.id === confirmDeleteArticle.id ? { ...a, active: false } : a
           )
         );
       }
@@ -180,14 +180,14 @@ export function AdminArticles() {
   const confirmActivate = async () => {
     if (!confirmActivateArticle) return;
     try {
-      const res = await fetch(`${API_BASE}/articles/${confirmActivateArticle.articleId}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_BASE}/articles/${confirmActivateArticle.id}/activate`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: true }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setArticleList((prev) => prev.map((a) => (a.articleId === confirmActivateArticle.articleId ? updated : a)));
+        setArticleList((prev) => prev.map((a) => (a.id === confirmActivateArticle.id ? updated : a)));
       }
     } catch (e) {
       console.error('Failed to activate', e);
@@ -402,7 +402,7 @@ export function AdminArticles() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredArticles.map((article, index) => (
-                    <tr key={article.articleId || `art-${index}`} className="hover:bg-blue-50 transition-colors">
+                    <tr key={article.id || `art-${index}`} className="hover:bg-blue-50 transition-colors">
                       <td className="px-6 py-4">
                         {article.coverImgUrl && (
                           <img
@@ -416,7 +416,7 @@ export function AdminArticles() {
                         <div className="font-semibold text-blue-900">{article.title}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {magazineList.find(m => m.cmmuanId === article.magazineId)?.title || 'N/A'}
+                        {article.magazine?.title || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'N/A'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{typeof article.viewCount === 'number' ? article.viewCount : 0}</td>
