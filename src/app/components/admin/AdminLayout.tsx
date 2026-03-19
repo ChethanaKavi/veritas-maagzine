@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import veritasLogo from "../../../images/veritas.png";
 import { useAdminAuth } from "../../contexts/AdminAuthContext";
 import {
   LayoutDashboard,
@@ -41,7 +42,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Logo */}
       <div className="p-5 border-b border-blue-800 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-xl font-bold">Veritas</h1>
+          <img src={veritasLogo} alt="Veritas" className="h-8 w-auto object-contain brightness-0 invert mb-0.5" />
           <p className="text-xs text-blue-300 mt-0.5">Admin Panel</p>
         </div>
         <button
@@ -127,7 +128,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <span className="font-bold">Veritas Admin</span>
+          <img src={veritasLogo} alt="Veritas" className="h-7 w-auto object-contain brightness-0 invert" />
         </div>
 
         <main className="flex-1 overflow-y-auto bg-gray-50 overscroll-none">

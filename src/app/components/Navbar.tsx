@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { MagazineDrawer } from "./MagazineDrawer";
 import { Input } from "./ui/input";
+import veritasLogo from "../../images/veritas.png";
 
 export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -71,15 +72,15 @@ export function Navbar() {
                 </Link>
               ))}
               {/* Logo placed after nav links on desktop */}
-              <Link to="/" className="text-2xl font-bold tracking-tight text-blue-900 ml-4">
-                Veritas
+              <Link to="/" className="ml-4 flex items-center">
+                <img src={veritasLogo} alt="Veritas" className="h-9 w-auto object-contain" />
               </Link>
             </div>
 
             {/* Mobile Logo */}
             <div className="md:hidden">
-              <Link to="/" className="text-xl font-bold tracking-tight text-blue-900">
-                Veritas
+              <Link to="/" className="flex items-center">
+                <img src={veritasLogo} alt="Veritas" className="h-8 w-auto object-contain" />
               </Link>
             </div>
           </div>
