@@ -25,6 +25,8 @@ export function CircularCarousel({ articles, compact = false }: CircularCarousel
 
   if (articles.length === 0) return null;
 
+  const currentArticle = articles[currentIndex];
+
   const getArticleStyle = (index: number) => {
     const total = articles.length;
     const angle = ((index - currentIndex + total) % total) * (360 / total);
@@ -42,7 +44,9 @@ export function CircularCarousel({ articles, compact = false }: CircularCarousel
   };
 
     return (
-    <div className={`relative w-full ${compact ? 'h-[220px]' : 'h-[360px]'} flex items-center justify-center`}>
+    <div className="w-full flex flex-col items-center">
+      {/* ── Orbit area ── */}
+      <div className={`relative w-full ${compact ? 'h-[220px]' : 'h-[360px]'} flex items-center justify-center`}>
       {/* visible circular track with subtle background */}
       <div className={`absolute ${compact ? 'w-[180px] h-[180px]' : 'w-[260px] h-[260px]'} rounded-full`}
            style={{
@@ -82,7 +86,7 @@ export function CircularCarousel({ articles, compact = false }: CircularCarousel
               position: "absolute",
               zIndex: style.zIndex,
             }}
-            className={`${compact ? 'w-20 h-20' : 'w-28 h-28'}`} // Slightly larger circles when not compact
+            className={`${compact ? 'w-20 h-20' : 'w-28 h-28'}`}
           >
             <Link to={`/articles/${article.id}`} className="relative group">
               <img
@@ -105,33 +109,38 @@ export function CircularCarousel({ articles, compact = false }: CircularCarousel
                   </p>
                 </div>
               )}
-
-              {/* Info box for the active item */}
-              {isTop && (
-                <AnimatePresence>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ delay: 0.2 }}
-                    className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-6 lg:top-1/2 lg:left-full lg:-translate-y-1/2 lg:translate-x-0 lg:mt-0 lg:ml-4 ${compact ? 'w-44 p-2' : 'w-64 p-4'} bg-white rounded-lg shadow-2xl border border-blue-100`}
-                  >
-                    <h4 className={`font-bold ${compact ? 'text-[11px]' : 'text-sm md:text-base'} mb-1 text-blue-900 line-clamp-2 leading-tight`}>
-                      {article.title}
-                    </h4>
-                    <p className={`text-gray-700 line-clamp-2 ${compact ? 'text-[9px]' : 'text-[11px]'}`}>
-                      {article.excerpt || stripHtml(article.content || '').slice(0, 120)}
-                    </p>
-                    <div className={`mt-1 font-semibold hover:underline text-blue-600 ${compact ? 'text-[9px]' : 'text-[11px]'}`}>
-                      Read More →
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              )}
             </Link>
           </motion.div>
         );
       })}
+      </div>
+
+      {/* ── Info card: rendered in normal flow BELOW the orbit ──
+          This avoids the card being lifted by the active circle's
+          CSS transform (y: -90px) which caused it to appear near the navbar. */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentArticle.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+          className={`${compact ? 'w-44 p-2' : 'w-64 p-4'} bg-white rounded-lg shadow-2xl border border-blue-100 mt-2`}
+        >
+          <h4 className={`font-bold ${compact ? 'text-[11px]' : 'text-sm md:text-base'} mb-1 text-blue-900 line-clamp-2 leading-tight`}>
+            {currentArticle.title}
+          </h4>
+          <p className={`text-gray-700 line-clamp-2 ${compact ? 'text-[9px]' : 'text-[11px]'}`}>
+            {currentArticle.excerpt || stripHtml(currentArticle.content || '').slice(0, 120)}
+          </p>
+          <Link
+            to={`/articles/${currentArticle.id}`}
+            className={`mt-1 font-semibold hover:underline text-blue-600 ${compact ? 'text-[9px]' : 'text-[11px]'} block`}
+          >
+            Read More →
+          </Link>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

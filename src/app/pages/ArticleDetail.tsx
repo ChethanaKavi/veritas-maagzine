@@ -80,7 +80,7 @@ export function ArticleDetail() {
 
       {/* Article Header */}
       <article>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-blue-900">{article.title}</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-blue-900 break-words">{article.title}</h1>
         <p className="text-xl text-gray-600 mb-6">{article.excerpt || ''}</p>
 
         {/* Article Meta */}
@@ -101,7 +101,7 @@ export function ArticleDetail() {
           <img
             src={article.coverImgUrl}
             alt={article.title}
-            className="w-full h-auto"
+            className="w-full h-56 sm:h-72 md:h-96 object-cover"
           />
         </div>
         )}

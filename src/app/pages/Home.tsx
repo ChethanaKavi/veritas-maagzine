@@ -128,7 +128,7 @@ export function Home() {
                 <h3 className="text-xl font-bold text-blue-900 whitespace-nowrap z-10 shrink-0">
                   Featured Articles
                 </h3>
-                <div className="w-28 sm:w-40 md:w-64 relative z-50 transform translate-y-1">
+                <div className="w-44 sm:w-56 md:w-64 relative">
                   <CircularCarousel articles={magneticleArticles} compact />
                 </div>
               </div>
