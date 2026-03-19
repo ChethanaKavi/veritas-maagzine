@@ -15,12 +15,16 @@ interface AdData {
   area?: string;
   link?: string;
   active: boolean;
+  magazineId?: string | null;
+  articleId?: string | null;
 }
 
 export type AdArea = string;
 
 interface AdvertisementProps {
   area?: AdArea;
+  magazineId?: string;
+  articleId?: string;
 }
 
 // Module-level cache so multiple components don't re-fetch
@@ -140,16 +144,30 @@ function AdModal({ ad, onClose }: { ad: AdData; onClose: () => void }) {
   );
 }
 
-export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
+export function Advertisement({ area = "inline-content", magazineId, articleId }: AdvertisementProps) {
   const [ad, setAd] = useState<AdData | null | "loading">("loading");
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
+    // invalidate cache so page-specific ads always re-fetch
+    adsCache = null;
+    adsFetching = null;
+
     getAds().then((ads) => {
-      const filtered = ads.filter((a) => a.active && a.area === area);
+      const filtered = ads.filter((a) => {
+        if (!a.active) return false;
+        if (a.area !== area) return false;
+        // If the ad has a specific magazineId, only show on that magazine
+        if (a.magazineId && magazineId && a.magazineId !== magazineId) return false;
+        if (a.magazineId && !magazineId) return false;
+        // If the ad has a specific articleId, only show on that article
+        if (a.articleId && articleId && a.articleId !== articleId) return false;
+        if (a.articleId && !articleId) return false;
+        return true;
+      });
       setAd(filtered.length > 0 ? filtered[0] : null);
     });
-  }, [area]);
+  }, [area, magazineId, articleId]);
 
   // Still fetching
   if (ad === "loading") return null;

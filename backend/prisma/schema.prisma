@@ -19,6 +19,7 @@ model Magazine {
   isActive      Boolean       @default(true)
   viewCount     Int?
   articles      Article[]
+  advertisements Advertisement[]
 
 }
 
@@ -38,6 +39,7 @@ model Article {
   magazine     Magazine      @relation(fields: [magazineId], references: [id])
   views        ArticleView[]
   tags         Tag[]         @relation("ArticleToTag")
+  advertisements Advertisement[]
 }
 
 model Tag {
@@ -68,6 +70,10 @@ model Advertisement {
   area             String?
   link             String?
   active           Boolean   @default(true)
+  magazineId       String?
+  articleId        String?
+  magazine         Magazine? @relation(fields: [magazineId], references: [id])
+  article          Article?  @relation(fields: [articleId], references: [id])
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }

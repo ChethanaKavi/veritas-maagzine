@@ -198,7 +198,7 @@ export function MagazineDetail() {
 
       {/* Inline ad between magazine info and articles */}
       <section className="mb-8">
-        <Advertisement area="inline-content" />
+        <Advertisement area="inline-content" magazineId={magazine?.id} />
       </section>
 
       {/* Magazine Articles */}
@@ -258,7 +258,7 @@ export function MagazineDetail() {
 
       {/* Bottom strip ad */}
       <section className="mt-10">
-        <Advertisement area="bottom-strip" />
+        <Advertisement area="bottom-strip" magazineId={magazine?.id} />
       </section>
     </div>
   );

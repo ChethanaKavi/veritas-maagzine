@@ -320,11 +320,14 @@ app.post('/articles/:id/publish', async (req, res) => {
 
 // Advertisement CRUD
 app.get('/advertisements', async (req, res) => {
+  const { magazineId, articleId } = req.query;
   try {
+    const where: any = {};
+    if (magazineId) where.magazineId = magazineId as string;
+    if (articleId) where.articleId = articleId as string;
     const advertisements = await prisma.advertisement.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where,
+      orderBy: { createdAt: 'desc' },
     });
     res.json(advertisements);
   } catch (error) {
@@ -375,7 +378,7 @@ app.get('/advertisements/:id', async (req, res) => {
 
 app.post('/advertisements', async (req, res) => {
   try {
-    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } = req.body;
+    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, magazineId, articleId } = req.body;
     const newAd = await prisma.advertisement.create({
       data: {
         topic,
@@ -388,6 +391,8 @@ app.post('/advertisements', async (req, res) => {
         mobileImageWidth,
         area,
         link,
+        magazineId: magazineId || null,
+        articleId: articleId || null,
       },
     });
     res.status(201).json(newAd);
@@ -400,7 +405,7 @@ app.post('/advertisements', async (req, res) => {
 app.put('/advertisements/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } = req.body;
+    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, magazineId, articleId } = req.body;
     const updatedAd = await prisma.advertisement.update({
       where: { id },
       data: {
@@ -414,6 +419,8 @@ app.put('/advertisements/:id', async (req, res) => {
         mobileImageWidth,
         area,
         link,
+        magazineId: magazineId || null,
+        articleId: articleId || null,
       },
     });
     res.json(updatedAd);

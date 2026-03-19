@@ -75,7 +75,7 @@ export function ArticleDetail() {
 
   return (
     <>
-      <Advertisement area="top-banner" />
+      <Advertisement area="top-banner" articleId={article?.id} magazineId={article?.magazineId} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 overflow-x-hidden">
 
       {/* Article Header */}
@@ -115,7 +115,7 @@ export function ArticleDetail() {
 
       {/* Advertisement */}
       <section className="mb-12">
-        <Advertisement area="inline-content" />
+        <Advertisement area="inline-content" articleId={article?.id} magazineId={article?.magazineId} />
       </section>
 
       {/* Related Magazine */}

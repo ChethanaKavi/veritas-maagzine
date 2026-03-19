@@ -30,6 +30,8 @@ export function AdminAdvertisements() {
   const [placements, setPlacements] = useState<Array<{ value: string; label: string }>>([]);
   const [selectedPlacement, setSelectedPlacement] = useState<string | null>(null);
   const [customPlacementName, setCustomPlacementName] = useState("");
+  const [allMagazines, setAllMagazines] = useState<any[]>([]);
+  const [magazineArticles, setMagazineArticles] = useState<any[]>([]);
   
   const [viewAd, setViewAd] = useState<any | null>(null);
   const [confirmDeleteAd, setConfirmDeleteAd] = useState<any | null>(null);
@@ -47,6 +49,8 @@ export function AdminAdvertisements() {
     mobileImageWidth: 0,
     area: "sidebar",
     link: "#",
+    magazineId: "",
+    articleId: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [formErrors, setFormErrors] = useState<{ web?: string; tab?: string; mobile?: string }>({});
@@ -66,6 +70,11 @@ export function AdminAdvertisements() {
 
   useEffect(() => {
     fetchAds();
+    // fetch all magazines for the magazine dropdown
+    fetch(`${API_URL}/magazines`)
+      .then((r) => r.ok ? r.json() : [])
+      .then(setAllMagazines)
+      .catch(() => {});
   }, []);
 
   // load placements from localStorage or default
@@ -101,6 +110,18 @@ export function AdminAdvertisements() {
     }
   }, [location.search]);
 
+  // When the magazine selection changes, load its articles
+  useEffect(() => {
+    if (!newAd.magazineId) {
+      setMagazineArticles([]);
+      return;
+    }
+    fetch(`${API_URL}/magazines/${newAd.magazineId}/articles`)
+      .then((r) => r.ok ? r.json() : [])
+      .then(setMagazineArticles)
+      .catch(() => setMagazineArticles([]));
+  }, [newAd.magazineId]);
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingId ? `${API_URL}/advertisements/${editingId}` : `${API_URL}/advertisements`;
@@ -116,7 +137,7 @@ export function AdminAdvertisements() {
         fetchAds();
         setIsAdding(false);
         setEditingId(null);
-        setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#" });
+        setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#", magazineId: "", articleId: "" });
       } else {
         console.error("Failed to save advertisement");
       }
@@ -171,6 +192,8 @@ export function AdminAdvertisements() {
       mobileImageWidth: ad.mobileImageWidth || 0,
       area: ad.area || "sidebar",
       link: ad.link || "#",
+      magazineId: ad.magazineId || "",
+      articleId: ad.articleId || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -225,7 +248,7 @@ export function AdminAdvertisements() {
             Placement
           </Button>
           {!isAdding && (
-            <Button onClick={() => { setIsAdding(true); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#" }); }} className="bg-blue-900 hover:bg-blue-800">
+            <Button onClick={() => { setIsAdding(true); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#", magazineId: "", articleId: "" }); }} className="bg-blue-900 hover:bg-blue-800">
               <Plus className="w-4 h-4 mr-2" /> Add New Advertisement
             </Button>
           )}
@@ -236,7 +259,7 @@ export function AdminAdvertisements() {
         <div className="bg-white rounded-lg border-2 border-blue-200 p-4 sm:p-8 w-full max-w-2xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-blue-900">{editingId ? "Edit Advertisement" : "Add New Advertisement"}</h2>
-            <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#" }); }}>
+            <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#", magazineId: "", articleId: "" }); }}>
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -338,6 +361,50 @@ export function AdminAdvertisements() {
                   </SelectContent>
                 </Select>
             </div>
+            {/* ── Magazine targeting ── */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">
+                Target Magazine <span className="text-gray-400 font-normal">(optional — leave blank to show on all)</span>
+              </label>
+              <Select
+                value={newAd.magazineId || "__all__"}
+                onValueChange={(v) => setNewAd({ ...newAd, magazineId: v === "__all__" ? "" : v, articleId: "" })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All magazines" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All magazines</SelectItem>
+                  {allMagazines.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ── Article targeting (only shown when a magazine is selected) ── */}
+            {newAd.magazineId && (
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Target Article <span className="text-gray-400 font-normal">(optional — leave blank to show on all articles of this magazine)</span>
+                </label>
+                <Select
+                  value={newAd.articleId || "__all__"}
+                  onValueChange={(v) => setNewAd({ ...newAd, articleId: v === "__all__" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All articles in this magazine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">All articles in this magazine</SelectItem>
+                    {magazineArticles.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Link URL</label>
               <Input
