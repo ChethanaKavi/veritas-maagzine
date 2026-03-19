@@ -3,6 +3,7 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import { ArticleCard } from "../components/ArticleCard";
 import { CircularCarousel } from "../components/CircularCarousel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Advertisement } from "../components/Advertisement";
 
 export function MagazineDetail() {
   const { id } = useParams();
@@ -195,6 +196,11 @@ export function MagazineDetail() {
         </div>
       </section>
 
+      {/* Inline ad between magazine info and articles */}
+      <section className="mb-8">
+        <Advertisement area="inline-content" />
+      </section>
+
       {/* Magazine Articles */}
       <section id="articles">
         <h2 className="text-3xl font-bold mb-8 text-blue-900">Articles in This Issue</h2>
@@ -248,6 +254,11 @@ export function MagazineDetail() {
             )}
           </>
         )}
+      </section>
+
+      {/* Bottom strip ad */}
+      <section className="mt-10">
+        <Advertisement area="bottom-strip" />
       </section>
     </div>
   );

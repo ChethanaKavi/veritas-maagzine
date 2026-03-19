@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArticleCard } from "../components/ArticleCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Advertisement } from "../components/Advertisement";
 
 export function Articles() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,57 +54,77 @@ export function Articles() {
         Explore our complete collection of articles across all magazines
       </p>
 
-      {/* Articles Grid - 5 columns */}
-      {currentArticles.length > 0 ? (
-        <>
-          <div className="mb-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
-              {currentArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          </div>
+      <div className="flex gap-6 items-start">
+        {/* Left sidebar ad */}
+        <div className="hidden xl:block w-56 flex-shrink-0">
+          <Advertisement area="left-sidebar" />
+        </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-blue-900" />
-              </button>
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Articles Grid */}
+          {currentArticles.length > 0 ? (
+            <>
+              <div className="mb-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+                  {currentArticles.map((article) => (
+                    <ArticleCard key={article.id} article={article} />
+                  ))}
+                </div>
+              </div>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    currentPage === page
-                      ? "bg-blue-900 text-white"
-                      : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-blue-900" />
+                  </button>
 
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-blue-900" />
-              </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        currentPage === page
+                          ? "bg-blue-900 text-white"
+                          : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5 text-blue-900" />
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">No articles found matching your search.</p>
             </div>
           )}
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-600 text-lg">No articles found matching your search.</p>
         </div>
-      )}
+
+        {/* Right sidebar ad */}
+        <div className="hidden lg:block w-56 flex-shrink-0">
+          <Advertisement area="sidebar" />
+        </div>
+      </div>
+
+      {/* Bottom strip ad */}
+      <section className="mt-10">
+        <Advertisement area="bottom-strip" />
+      </section>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Filter } from "lucide-react";
+import { Advertisement } from "../components/Advertisement";
 
 export function Magazines() {
   const [allMagazines, setAllMagazines] = useState<any[]>([]);
@@ -57,6 +58,8 @@ export function Magazines() {
   }
 
   return (
+    <>
+      <Advertisement area="top-banner" />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
@@ -133,6 +136,12 @@ export function Magazines() {
           <p className="text-gray-600 text-lg">No magazines found for the selected month.</p>
         </div>
       )}
+
+      {/* Bottom strip ad */}
+      <section className="mt-10">
+        <Advertisement area="bottom-strip" />
+      </section>
     </div>
+    </>
   );
 }

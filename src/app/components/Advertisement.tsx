@@ -12,7 +12,7 @@ interface AdData {
   active: boolean;
 }
 
-export type AdArea = "top-banner" | "sidebar" | "bottom-strip" | "inline-content";
+export type AdArea = string;
 
 interface AdvertisementProps {
   area?: AdArea;
@@ -161,6 +161,37 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
   if (area === "sidebar") {
     const topic = realAd?.topic ?? "Your Brand Here";
     const description = realAd?.description ?? "Reach thousands of engaged readers with your message. Contact us for advertising opportunities.";
+    return (
+      <>
+        <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg overflow-hidden sticky top-4">
+          {image && <img src={image} alt={topic} className="w-full h-44 object-cover" />}
+          <div className="p-4">
+            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Advertisement</p>
+            <h4 className="font-bold text-blue-900 text-sm mb-1">{topic}</h4>
+            <p className="text-xs text-gray-600 mb-3">{description}</p>
+            <button
+              onClick={handleLearnMore}
+              className="block w-full text-center px-3 py-2 bg-blue-900 text-white rounded text-sm font-semibold hover:bg-blue-800 transition-colors"
+            >
+              Learn More
+            </button>
+          </div>
+        </div>
+        {showModal && realAd && <AdModal ad={realAd} onClose={() => setShowModal(false)} />}
+        {showModal && !realAd && (
+          <AdModal
+            ad={{ id: "default", topic, description, active: true }}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  /* ── LEFT SIDEBAR ────────────────────────────────────────── */
+  if (area === "left-sidebar") {
+    const topic = realAd?.topic ?? "Your Brand Here";
+    const description = realAd?.description ?? "Reach thousands of engaged readers with your message.";
     return (
       <>
         <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg overflow-hidden sticky top-4">

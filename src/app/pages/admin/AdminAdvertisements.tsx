@@ -327,10 +327,14 @@ export function AdminAdvertisements() {
                     <SelectValue placeholder="Select Area" />
                   </SelectTrigger>
                   <SelectContent>
-                    {placements.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    <SelectItem value="top-banner">Top Banner — Home · Article pages · Magazines</SelectItem>
+                    <SelectItem value="sidebar">Right Sidebar — Home · About · Articles · Magazine detail</SelectItem>
+                    <SelectItem value="left-sidebar">Left Sidebar — Articles list</SelectItem>
+                    <SelectItem value="inline-content">Inline Content — Article detail · Magazine detail</SelectItem>
+                    <SelectItem value="bottom-strip">Bottom Strip — Home · About · Articles · Magazines · Magazine detail</SelectItem>
+                    {placements.filter(p => !['top-banner','sidebar','left-sidebar','inline-content','bottom-strip'].includes(p.value)).map((p) => (
+                      <SelectItem key={p.value} value={p.value}>⚠ {p.label} (custom)</SelectItem>
                     ))}
-                    <SelectItem value="other">Other (define)</SelectItem>
                   </SelectContent>
                 </Select>
             </div>
@@ -431,72 +435,109 @@ export function AdminAdvertisements() {
 
       {/* Placement Dialog */}
       <Dialog open={showPlacementDialog} onOpenChange={() => setShowPlacementDialog(false)}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ad Placements</DialogTitle>
-            <DialogDescription>Select an existing placement or define a new custom one.</DialogDescription>
+            <DialogDescription>
+              Select where this ad should appear on the website. Standard zones are automatically shown on the correct pages.
+            </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 space-y-2">
-            {/* Existing placements from DB */}
-            {placements.map((p) => (
+          <div className="mt-4 space-y-3">
+            {/* Standard active zones */}
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">✅ Standard Zones — Auto-shown on website</p>
+            {[
+              { value: 'top-banner', label: 'Top Banner', desc: 'Full-width bar at top', pages: 'Home · Article pages · Magazines list' },
+              { value: 'sidebar', label: 'Right Sidebar', desc: 'Right column card (sticky)', pages: 'Home · About · Articles list · Magazine detail' },
+              { value: 'left-sidebar', label: 'Left Sidebar', desc: 'Left column card (sticky)', pages: 'Articles list' },
+              { value: 'inline-content', label: 'Inline Content', desc: 'In-article banner block', pages: 'Article detail · Magazine detail' },
+              { value: 'bottom-strip', label: 'Bottom Strip', desc: 'Wide strip at page bottom', pages: 'Home · About · Articles · Magazines · Magazine detail' },
+            ].map((zone) => (
               <div
-                key={p.value}
+                key={zone.value}
                 onClick={() => {
-                  setNewAd({ ...newAd, area: p.value });
-                  setSelectedPlacement(p.value);
+                  setNewAd({ ...newAd, area: zone.value });
+                  setSelectedPlacement(zone.value);
                   setShowPlacementDialog(false);
                 }}
-                className={`p-3 border rounded-lg cursor-pointer flex items-center justify-between hover:bg-blue-50 transition-colors ${newAd.area === p.value ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+                className={`p-3 border-2 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all ${
+                  newAd.area === zone.value ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-300' : 'border-gray-200'
+                }`}
               >
-                <div>
-                  <div className="font-semibold text-blue-900">{p.label}</div>
-                  <div className="text-xs text-gray-500">{p.value}</div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-blue-900 text-sm">{zone.label}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{zone.desc}</div>
+                    <div className="text-xs text-blue-600 mt-1">📍 {zone.pages}</div>
+                  </div>
+                  {newAd.area === zone.value && (
+                    <span className="text-blue-600 font-bold text-sm flex-shrink-0 ml-2">✓</span>
+                  )}
                 </div>
-                {newAd.area === p.value && <span className="text-blue-600 text-sm font-semibold">✓ Selected</span>}
               </div>
             ))}
 
+            {/* Custom placements from DB (non-standard) */}
+            {placements.filter(p => !['top-banner','sidebar','left-sidebar','inline-content','bottom-strip'].includes(p.value)).length > 0 && (
+              <>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider pt-2">⚠ Custom Zones — Need developer to place in pages</p>
+                {placements
+                  .filter(p => !['top-banner','sidebar','left-sidebar','inline-content','bottom-strip'].includes(p.value))
+                  .map((p) => (
+                    <div
+                      key={p.value}
+                      onClick={() => {
+                        setNewAd({ ...newAd, area: p.value });
+                        setSelectedPlacement(p.value);
+                        setShowPlacementDialog(false);
+                      }}
+                      className={`p-3 border-2 rounded-lg cursor-pointer hover:border-yellow-400 hover:bg-yellow-50 transition-all ${
+                        newAd.area === p.value ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-300' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-800 text-sm">{p.label}</div>
+                          <div className="text-xs text-yellow-700 mt-0.5">⚠ Not yet placed in any page</div>
+                        </div>
+                        {newAd.area === p.value && (
+                          <span className="text-yellow-600 font-bold text-sm flex-shrink-0 ml-2">✓</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </>
+            )}
+
             {/* Add new custom placement */}
-            <div className={`p-4 border rounded-lg mt-3 ${selectedPlacement === 'other' ? 'ring-2 ring-blue-300' : ''}`}>
-              <div className="font-semibold text-gray-800">+ Add New Placement</div>
-              <div className="text-sm text-gray-600 mt-1">Define a custom placement name and save it to the database.</div>
+            <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 mt-2">
+              <div className="font-semibold text-gray-700 text-sm mb-1">+ Add Custom Placement</div>
+              <div className="text-xs text-gray-500 mb-3">Creates a new zone name. A developer must add it to a page for it to appear.</div>
               <input
                 value={customPlacementName}
                 onChange={(e) => setCustomPlacementName(e.target.value)}
-                placeholder="e.g. Homepage Sidebar"
-                className="w-full mt-3 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                placeholder="e.g. Homepage Hero"
+                className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 mb-2"
               />
-              <div className="mt-3 flex gap-2">
-                <Button
-                  onClick={async () => {
-                    const val = customPlacementName.trim();
-                    if (!val) return;
-                    const key = val.toLowerCase().replace(/\s+/g, '-');
-                    try {
-                      const res = await fetch(`${API_URL}/placements`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ value: key, label: val }),
-                      });
-                      const listRes = await fetch(`${API_URL}/placements`);
-                      if (listRes.ok) setPlacements(await listRes.json());
-                      setNewAd({ ...newAd, area: key });
-                      setSelectedPlacement(key);
-                      setCustomPlacementName('');
-                      if (res.status === 201 || res.status === 409) {
-                        setShowPlacementDialog(false);
-                      }
-                    } catch {
-                      const key2 = val.toLowerCase().replace(/\s+/g, '-');
-                      setPlacements((prev) => prev.some((pp) => pp.value === key2) ? prev : [...prev, { value: key2, label: val }]);
-                      setNewAd({ ...newAd, area: key2 });
-                      setShowPlacementDialog(false);
-                    }
-                  }}
-                >
-                  Save & Use
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  const val = customPlacementName.trim();
+                  if (!val) return;
+                  const key = val.toLowerCase().replace(/\s+/g, '-');
+                  try {
+                    await fetch(`${API_URL}/placements`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ value: key, label: val }),
+                    });
+                    const listRes = await fetch(`${API_URL}/placements`);
+                    if (listRes.ok) setPlacements(await listRes.json());
+                    setCustomPlacementName('');
+                  } catch { /* ignore */ }
+                }}
+              >
+                Save to DB
+              </Button>
             </div>
           </div>
           <DialogFooter className="mt-4">
