@@ -7,6 +7,8 @@ export function Magazines() {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
+  useEffect(() => { document.title = 'Magazines — Veritas Magazine'; }, []);
+
   useEffect(() => {
     (async () => {
       try {

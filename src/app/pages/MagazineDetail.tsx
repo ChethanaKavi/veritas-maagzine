@@ -60,7 +60,7 @@ export function MagazineDetail() {
     // Fire GA4 page_view with magazine title (overrides the generic /magazines/:id view)
     if (typeof window.gtag === 'function') {
       window.gtag('config', 'G-JDT8YSE3TM', {
-        page_title: magazine.title,
+        page_title: `${magazine.title} — Veritas Magazine`,
         page_path: `/magazines/${magazine.id}`,
       });
     }

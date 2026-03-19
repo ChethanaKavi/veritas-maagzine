@@ -9,6 +9,8 @@ export function Articles() {
 
   const [allArticles, setAllArticles] = useState<any[]>([]);
 
+  useEffect(() => { document.title = 'Articles — Veritas Magazine'; }, []);
+
   useEffect(() => {
     (async () => {
       try {

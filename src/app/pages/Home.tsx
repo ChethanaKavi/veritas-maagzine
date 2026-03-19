@@ -13,6 +13,8 @@ export function Home() {
   
   const articlesPerPage = 5;
 
+  useEffect(() => { document.title = 'Veritas Magazine'; }, []);
+
   useEffect(() => {
     (async () => {
       try {

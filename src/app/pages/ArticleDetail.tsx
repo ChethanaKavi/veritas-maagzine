@@ -44,7 +44,7 @@ export function ArticleDetail() {
     // Fire GA4 page_view with article title (overrides the generic /articles/:id view)
     if (typeof window.gtag === 'function') {
       window.gtag('config', 'G-JDT8YSE3TM', {
-        page_title: article.title,
+        page_title: `${article.title} — Veritas Magazine`,
         page_path: `/articles/${article.id}`,
       });
     }
