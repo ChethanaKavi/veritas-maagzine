@@ -72,6 +72,14 @@ model Advertisement {
   updatedAt        DateTime  @updatedAt
 }
 
+model Placement {
+  id        String   @id @default(cuid())
+  value     String   @unique
+  label     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 
 
 model AdminUser {

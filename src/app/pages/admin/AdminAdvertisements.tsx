@@ -27,6 +27,9 @@ export function AdminAdvertisements() {
   const [isAdding, setIsAdding] = useState(false);
   const [ads, setAds] = useState<any[]>([]);
   const [showPlacementDialog, setShowPlacementDialog] = useState(false);
+  const [placements, setPlacements] = useState<Array<{ value: string; label: string }>>([]);
+  const [selectedPlacement, setSelectedPlacement] = useState<string | null>(null);
+  const [customPlacementName, setCustomPlacementName] = useState("");
   
   const [viewAd, setViewAd] = useState<any | null>(null);
   const [confirmDeleteAd, setConfirmDeleteAd] = useState<any | null>(null);
@@ -63,6 +66,30 @@ export function AdminAdvertisements() {
 
   useEffect(() => {
     fetchAds();
+  }, []);
+
+  // load placements from localStorage or default
+  useEffect(() => {
+    const fetchPlacements = async () => {
+      try {
+        const res = await fetch(`${API_URL}/placements`);
+        if (res.ok) {
+          const data = await res.json();
+          // expected data: [{ value, label }, ...]
+          setPlacements(data);
+          return;
+        }
+      } catch (err) {
+        // ignore and fallback to defaults
+      }
+      setPlacements([
+        { value: "top-banner", label: "Top Banner" },
+        { value: "sidebar", label: "Sidebar" },
+        { value: "bottom-strip", label: "Bottom Strip" },
+        { value: "inline-content", label: "Inline Content" },
+      ]);
+    };
+    fetchPlacements();
   }, []);
 
   useEffect(() => {
@@ -194,6 +221,9 @@ export function AdminAdvertisements() {
           <p className="text-gray-600">Manage your website's ad placements</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => setShowPlacementDialog(true)} className="hidden md:inline-flex">
+            Placement
+          </Button>
           {!isAdding && (
             <Button onClick={() => { setIsAdding(true); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#" }); }} className="bg-blue-900 hover:bg-blue-800">
               <Plus className="w-4 h-4 mr-2" /> Add New Advertisement
@@ -290,19 +320,19 @@ export function AdminAdvertisements() {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Advertisement Area</label>
               <Select
-                value={newAd.area}
-                onValueChange={(value) => setNewAd({ ...newAd, area: value as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Area" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="top-banner">Top Banner</SelectItem>
-                  <SelectItem value="sidebar">Sidebar</SelectItem>
-                  <SelectItem value="bottom-strip">Bottom Strip</SelectItem>
-                  <SelectItem value="inline-content">Inline Content</SelectItem>
-                </SelectContent>
-              </Select>
+                  value={newAd.area}
+                  onValueChange={(value) => setNewAd({ ...newAd, area: value as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {placements.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                    <SelectItem value="other">Other (define)</SelectItem>
+                  </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700">Link URL</label>
@@ -398,6 +428,70 @@ export function AdminAdvertisements() {
         )}
 
       {/* Placement Dialog */}
+      <Dialog open={showPlacementDialog} onOpenChange={() => setShowPlacementDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ad Placements</DialogTitle>
+            <DialogDescription>Select a placement area and see example dimensions.</DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className={`p-4 border rounded-lg ${selectedPlacement === 'other' ? 'ring-2 ring-blue-300' : ''}`}>
+              <div className="font-semibold">Other (define)</div>
+              <div className="text-sm text-gray-600 mt-1">Define a custom placement name and save it.</div>
+              <input value={customPlacementName} onChange={(e) => setCustomPlacementName(e.target.value)} placeholder="e.g. Homepage Sidebar" className="w-full mt-3 border rounded px-3 py-2" />
+              <div className="mt-3 flex gap-2">
+                <Button onClick={() => { if (customPlacementName.trim()) { setSelectedPlacement('other'); } }} variant="outline">Select</Button>
+                <Button onClick={() => {
+                  (async () => {
+                    const val = customPlacementName.trim();
+                    if (!val) return;
+                    const key = val.toLowerCase().replace(/\s+/g, '-');
+                    try {
+                      const res = await fetch(`${API_URL}/placements`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ value: key, label: val }),
+                      });
+                      if (res.status === 201) {
+                        const created = await res.json();
+                        setPlacements((prev) => [...prev.filter((p) => p.value !== created.value), created]);
+                        setNewAd({ ...newAd, area: created.value });
+                      } else if (res.status === 409) {
+                        const listRes = await fetch(`${API_URL}/placements`);
+                        if (listRes.ok) {
+                          const list = await listRes.json();
+                          setPlacements(list);
+                        }
+                        setNewAd({ ...newAd, area: key });
+                      } else {
+                        setPlacements((prev) => {
+                          const exists = prev.some((pp) => pp.value === key);
+                          if (!exists) return [...prev, { value: key, label: val }];
+                          return prev;
+                        });
+                        setNewAd({ ...newAd, area: key });
+                      }
+                    } catch (err) {
+                      setPlacements((prev) => {
+                        const exists = prev.some((pp) => pp.value === key);
+                        if (!exists) return [...prev, { value: key, label: val }];
+                        return prev;
+                      });
+                      setNewAd({ ...newAd, area: key });
+                    }
+                    setShowPlacementDialog(false);
+                  })();
+                }}>
+                  Save & Use
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlacementDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Dialog */}
       <Dialog open={!!viewAd} onOpenChange={() => setViewAd(null)}>

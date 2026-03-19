@@ -27,9 +27,7 @@ app.get('/magazines', async (req, res) => {
       const magazines = await prisma.magazine.findMany({
         where: {
           isActive: true,
-          publishedAt: {
-            lte: new Date(),
-          },
+          isPublished: true,
         },
         orderBy: {
           publishedAt: 'desc',
@@ -144,6 +142,28 @@ app.post('/magazines/:id/activate', async (req, res) => {
   }
 });
 
+// Get articles for a specific magazine
+app.get('/magazines/:magazineId/articles', async (req, res) => {
+  const { magazineId } = req.params;
+  try {
+    const articles = await prisma.article.findMany({
+      where: {
+        magazineId: magazineId,
+        isActive: true,
+        isPublished: true,
+      },
+      include: { views: true, magazine: true },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+    res.json(articles);
+  } catch (error) {
+    console.error(`Error fetching articles for magazine ${magazineId}:`, error);
+    res.status(500).json({ error: 'An error occurred while fetching articles for the magazine' });
+  }
+});
+
 app.get('/articles', async (req, res) => {
   const { published } = req.query;
   try {
@@ -151,9 +171,7 @@ app.get('/articles', async (req, res) => {
       const arts = await prisma.article.findMany({
         where: {
           isActive: true,
-          publishedAt: {
-            lte: new Date(),
-          },
+          isPublished: true,
         },
         include: { views: true, magazine: true },
         orderBy: {
@@ -312,6 +330,31 @@ app.get('/advertisements', async (req, res) => {
   } catch (error) {
     console.error('Error fetching advertisements:', error);
     res.status(500).json({ error: 'An error occurred while fetching advertisements' });
+  }
+});
+
+// Placements CRUD
+app.get('/placements', async (req, res) => {
+  try {
+    const placements = await prisma.placement.findMany({ orderBy: { createdAt: 'asc' } });
+    res.json(placements);
+  } catch (error) {
+    console.error('Error fetching placements:', error);
+    res.status(500).json({ error: 'An error occurred while fetching placements' });
+  }
+});
+
+app.post('/placements', async (req, res) => {
+  try {
+    const { value, label } = req.body;
+    if (!value || !label) return res.status(400).json({ error: 'value and label are required' });
+    const existing = await prisma.placement.findUnique({ where: { value } });
+    if (existing) return res.status(409).json({ error: 'Placement already exists' });
+    const placement = await prisma.placement.create({ data: { value, label } });
+    res.status(201).json(placement);
+  } catch (error) {
+    console.error('Error creating placement:', error);
+    res.status(500).json({ error: 'An error occurred while creating placement' });
   }
 });
 

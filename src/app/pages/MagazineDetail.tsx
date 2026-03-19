@@ -54,11 +54,10 @@ export function MagazineDetail() {
     (async () => {
       if (!magazine?.id) return;
       try {
-        const res = await fetch('/api/articles?published=true');
+        const res = await fetch(`/api/magazines/${magazine.id}/articles`);
         if (res.ok) {
           const data = await res.json();
-          const all = data.value || data || [];
-          setMagazineArticles(all.filter((a: any) => a.magazineId === magazine.id));
+          setMagazineArticles(data || []);
         } else {
           setMagazineArticles([]);
         }

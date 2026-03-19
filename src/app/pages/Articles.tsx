@@ -17,7 +17,7 @@ export function Articles() {
         const res = await fetch('/api/articles?published=true');
         if (res.ok) {
           const data = await res.json();
-          setAllArticles(data.value || data || []);
+          setAllArticles(data || []);
         }
       } catch (e) {
         console.error('Failed to fetch articles', e);
