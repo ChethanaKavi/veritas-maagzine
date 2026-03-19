@@ -431,20 +431,44 @@ export function AdminAdvertisements() {
 
       {/* Placement Dialog */}
       <Dialog open={showPlacementDialog} onOpenChange={() => setShowPlacementDialog(false)}>
-        <DialogContent>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ad Placements</DialogTitle>
-            <DialogDescription>Select a placement area and see example dimensions.</DialogDescription>
+            <DialogDescription>Select an existing placement or define a new custom one.</DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <div className={`p-4 border rounded-lg ${selectedPlacement === 'other' ? 'ring-2 ring-blue-300' : ''}`}>
-              <div className="font-semibold">Other (define)</div>
-              <div className="text-sm text-gray-600 mt-1">Define a custom placement name and save it.</div>
-              <input value={customPlacementName} onChange={(e) => setCustomPlacementName(e.target.value)} placeholder="e.g. Homepage Sidebar" className="w-full mt-3 border rounded px-3 py-2" />
+          <div className="mt-4 space-y-2">
+            {/* Existing placements from DB */}
+            {placements.map((p) => (
+              <div
+                key={p.value}
+                onClick={() => {
+                  setNewAd({ ...newAd, area: p.value });
+                  setSelectedPlacement(p.value);
+                  setShowPlacementDialog(false);
+                }}
+                className={`p-3 border rounded-lg cursor-pointer flex items-center justify-between hover:bg-blue-50 transition-colors ${newAd.area === p.value ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+              >
+                <div>
+                  <div className="font-semibold text-blue-900">{p.label}</div>
+                  <div className="text-xs text-gray-500">{p.value}</div>
+                </div>
+                {newAd.area === p.value && <span className="text-blue-600 text-sm font-semibold">✓ Selected</span>}
+              </div>
+            ))}
+
+            {/* Add new custom placement */}
+            <div className={`p-4 border rounded-lg mt-3 ${selectedPlacement === 'other' ? 'ring-2 ring-blue-300' : ''}`}>
+              <div className="font-semibold text-gray-800">+ Add New Placement</div>
+              <div className="text-sm text-gray-600 mt-1">Define a custom placement name and save it to the database.</div>
+              <input
+                value={customPlacementName}
+                onChange={(e) => setCustomPlacementName(e.target.value)}
+                placeholder="e.g. Homepage Sidebar"
+                className="w-full mt-3 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
               <div className="mt-3 flex gap-2">
-                <Button onClick={() => { if (customPlacementName.trim()) { setSelectedPlacement('other'); } }} variant="outline">Select</Button>
-                <Button onClick={() => {
-                  (async () => {
+                <Button
+                  onClick={async () => {
                     const val = customPlacementName.trim();
                     if (!val) return;
                     const key = val.toLowerCase().replace(/\s+/g, '-');
@@ -454,42 +478,28 @@ export function AdminAdvertisements() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ value: key, label: val }),
                       });
-                      if (res.status === 201) {
-                        const created = await res.json();
-                        setPlacements((prev) => [...prev.filter((p) => p.value !== created.value), created]);
-                        setNewAd({ ...newAd, area: created.value });
-                      } else if (res.status === 409) {
-                        const listRes = await fetch(`${API_URL}/placements`);
-                        if (listRes.ok) {
-                          const list = await listRes.json();
-                          setPlacements(list);
-                        }
-                        setNewAd({ ...newAd, area: key });
-                      } else {
-                        setPlacements((prev) => {
-                          const exists = prev.some((pp) => pp.value === key);
-                          if (!exists) return [...prev, { value: key, label: val }];
-                          return prev;
-                        });
-                        setNewAd({ ...newAd, area: key });
-                      }
-                    } catch (err) {
-                      setPlacements((prev) => {
-                        const exists = prev.some((pp) => pp.value === key);
-                        if (!exists) return [...prev, { value: key, label: val }];
-                        return prev;
-                      });
+                      const listRes = await fetch(`${API_URL}/placements`);
+                      if (listRes.ok) setPlacements(await listRes.json());
                       setNewAd({ ...newAd, area: key });
+                      setSelectedPlacement(key);
+                      setCustomPlacementName('');
+                      if (res.status === 201 || res.status === 409) {
+                        setShowPlacementDialog(false);
+                      }
+                    } catch {
+                      const key2 = val.toLowerCase().replace(/\s+/g, '-');
+                      setPlacements((prev) => prev.some((pp) => pp.value === key2) ? prev : [...prev, { value: key2, label: val }]);
+                      setNewAd({ ...newAd, area: key2 });
+                      setShowPlacementDialog(false);
                     }
-                    setShowPlacementDialog(false);
-                  })();
-                }}>
+                  }}
+                >
                   Save & Use
                 </Button>
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setShowPlacementDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
