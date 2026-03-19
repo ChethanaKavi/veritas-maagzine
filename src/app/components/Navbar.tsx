@@ -36,7 +36,7 @@ export function Navbar() {
     <>
       <nav className="sticky top-0 z-40 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 sm:h-18 md:h-20">
             <div className="flex items-center gap-3">
               {/* Hamburger Menu */}
               <button
@@ -73,14 +73,22 @@ export function Navbar() {
               ))}
               {/* Logo placed after nav links on desktop */}
               <Link to="/" className="ml-4 flex items-center">
-                <img src={veritasLogo} alt="Veritas" className="h-9 w-auto object-contain" />
+                <img
+                  src={veritasLogo}
+                  alt="Veritas"
+                  className="h-12 md:h-14 w-auto min-w-[120px] object-contain"
+                />
               </Link>
             </div>
 
             {/* Mobile Logo */}
             <div className="md:hidden">
               <Link to="/" className="flex items-center">
-                <img src={veritasLogo} alt="Veritas" className="h-8 w-auto object-contain" />
+                <img
+                  src={veritasLogo}
+                  alt="Veritas"
+                  className="h-10 sm:h-12 w-auto min-w-[100px] object-contain"
+                />
               </Link>
             </div>
           </div>
