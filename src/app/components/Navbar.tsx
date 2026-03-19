@@ -36,7 +36,7 @@ export function Navbar() {
     <>
       <nav className="sticky top-0 z-40 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20 md:h-24">
+          <div className="flex items-center justify-between h-16 md:h-[72px]">
             <div className="flex items-center gap-3">
               {/* Hamburger Menu */}
               <button
@@ -76,7 +76,7 @@ export function Navbar() {
                 <img
                   src={veritasLogo}
                   alt="Veritas"
-                  className="w-40 md:w-52 h-auto object-contain"
+                  className="w-28 md:w-36 h-auto object-contain"
                 />
               </Link>
             </div>
@@ -87,7 +87,7 @@ export function Navbar() {
                 <img
                   src={veritasLogo}
                   alt="Veritas"
-                  className="w-32 sm:w-40 h-auto object-contain"
+                  className="w-24 sm:w-28 h-auto object-contain"
                 />
               </Link>
             </div>
