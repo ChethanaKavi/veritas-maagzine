@@ -76,9 +76,11 @@ export function Navbar() {
               </Link>
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Logo */}
             <div className="md:hidden">
-              <div className="w-6" /> {/* Spacer for balance */}
+              <Link to="/" className="text-xl font-bold tracking-tight text-blue-900">
+                Veritas
+              </Link>
             </div>
           </div>
 

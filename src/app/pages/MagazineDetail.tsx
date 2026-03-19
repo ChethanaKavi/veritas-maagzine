@@ -151,7 +151,7 @@ export function MagazineDetail() {
                 <h3 className="text-xl font-bold text-blue-900 whitespace-nowrap z-10 shrink-0">
                   Featured Articles
                 </h3>
-                <div className="w-48 md:w-64 relative z-50 transform translate-y-1">
+                <div className="w-28 sm:w-40 md:w-64 relative z-50 transform translate-y-1">
                   <CircularCarousel articles={magazineArticles} compact />
                 </div>
               </div>
@@ -171,7 +171,7 @@ export function MagazineDetail() {
         ) : (
           <>
             {/* Articles Grid - show first row like home */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 mb-8">
               {currentArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}

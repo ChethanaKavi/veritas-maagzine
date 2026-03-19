@@ -25,11 +25,11 @@ export function ArticleCard({ article }: ArticleCardProps) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors text-blue-900">
+      <div className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors text-blue-900 line-clamp-2">
           {article.title}
         </h3>
-        <p className="text-gray-600 line-clamp-2">{excerpt}</p>
+        <p className="text-gray-600 line-clamp-2 text-sm sm:text-base">{excerpt}</p>
       </div>
     </Link>
   );

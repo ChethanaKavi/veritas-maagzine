@@ -215,10 +215,10 @@ export function AdminAdvertisements() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900 mb-2">Advertisements</h1>
-          <p className="text-gray-600">Manage your website's ad placements</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-1">Advertisements</h1>
+          <p className="text-gray-600 text-sm sm:text-base">Manage your website's ad placements</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => setShowPlacementDialog(true)} className="hidden md:inline-flex">
@@ -233,7 +233,7 @@ export function AdminAdvertisements() {
       </div>
 
       {isAdding ? (
-        <div className="bg-white rounded-lg border-2 border-blue-200 p-8 max-w-2xl">
+        <div className="bg-white rounded-lg border-2 border-blue-200 p-4 sm:p-8 w-full max-w-2xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-blue-900">{editingId ? "Edit Advertisement" : "Add New Advertisement"}</h2>
             <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewAd({ topic: "", description: "", webImage: "", tabImage: "", mobileImage: "", webImageWidth: 0, tabImageWidth: 0, mobileImageWidth: 0, area: "sidebar", link: "#" }); }}>
@@ -367,7 +367,8 @@ export function AdminAdvertisements() {
             </div>
           </div>
           <div className="bg-white rounded-lg border-2 border-blue-200 overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
             <thead className="bg-blue-50 border-b-2 border-blue-200">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Preview</th>
@@ -423,6 +424,7 @@ export function AdminAdvertisements() {
               ))}
             </tbody>
           </table>
+            </div>
           </div>
         </div>
         )}

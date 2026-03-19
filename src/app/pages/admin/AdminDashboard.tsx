@@ -74,8 +74,8 @@ export function AdminDashboard() {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-3xl font-bold text-blue-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600 mb-8">Welcome back! Here's your overview</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-2">Dashboard</h1>
+        <p className="text-gray-600 mb-6 sm:mb-8">Welcome back! Here's your overview</p>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -105,7 +105,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Recent Articles */}
           <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
             <h2 className="text-xl font-bold text-blue-900 mb-4">
@@ -185,7 +185,7 @@ export function AdminDashboard() {
         {/* Quick Actions */}
           <div className="mt-8 bg-gradient-to-r from-blue-900 to-blue-800 rounded-lg p-6 text-white">
           <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate("/admin/magazines?add=true")}
                 className="rounded-lg p-0 overflow-hidden shadow-sm hover:shadow-md transition-shadow"

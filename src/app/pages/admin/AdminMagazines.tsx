@@ -200,10 +200,10 @@ export function AdminMagazines() {
     <AdminLayout>
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-blue-900 mb-2">Magazines</h1>
-            <p className="text-gray-600">Manage all magazine issues</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-1">Magazines</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Manage all magazine issues</p>
           </div>
           {!isAdding && (
             <button
@@ -212,16 +212,16 @@ export function AdminMagazines() {
                 setEditingId(null);
                 setNewMag({ title: "", description: "", coverImage: "", publishedAt: "" });
               }}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               Add New Magazine
             </button>
           )}
         </div>
 
         {isAdding ? (
-          <div className="bg-white rounded-lg border-2 border-blue-200 p-8 max-w-2xl mb-8">
+          <div className="bg-white rounded-lg border-2 border-blue-200 p-4 sm:p-8 w-full max-w-2xl mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-blue-900">{editingId ? "Edit Magazine" : "Add New Magazine"}</h2>
                <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewMag({ title: "", description: "", coverImage: "", publishedAt: "" }); }}>
@@ -323,7 +323,7 @@ export function AdminMagazines() {
         ) : (
           <>
             {/* Search and table container (restored original admin panel styling) */}
-            <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
+            <div className="bg-white rounded-lg border-2 border-blue-200 p-4 sm:p-6">
               <div className="mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -337,7 +337,8 @@ export function AdminMagazines() {
                 </div>
               </div>
 
-              <table className="w-full">
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full min-w-[650px]">
                 <thead className="bg-blue-50 border-b-2 border-blue-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
@@ -404,6 +405,7 @@ export function AdminMagazines() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </>
         )}

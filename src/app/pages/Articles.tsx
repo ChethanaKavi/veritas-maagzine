@@ -6,8 +6,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export function Articles() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
-  const [cols, setCols] = useState(5);
-
 
   const [allArticles, setAllArticles] = useState<any[]>([]);
 
@@ -34,26 +32,6 @@ export function Articles() {
   const endIndex = startIndex + articlesPerPage;
   const currentArticles = filteredArticles.slice(startIndex, endIndex);
 
-  // Determine number of columns to display based on viewport width
-  useEffect(() => {
-    function updateCols() {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        setCols(5);
-      } else if (window.matchMedia('(min-width: 768px)').matches) {
-        setCols(3);
-      } else {
-        setCols(1);
-      }
-    }
-
-    updateCols();
-    window.addEventListener('resize', updateCols);
-    return () => window.removeEventListener('resize', updateCols);
-  }, []);
-
-  // Only show the first row of tiles (cols number of items)
-  const visibleArticles = currentArticles.slice(0, cols);
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -77,8 +55,8 @@ export function Articles() {
       {currentArticles.length > 0 ? (
         <>
           <div className="mb-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {visibleArticles.map((article) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
+              {currentArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>

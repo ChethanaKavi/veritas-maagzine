@@ -38,11 +38,13 @@ export function ArticleDetail() {
   if (!article) return <Navigate to="/articles" replace />;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <>
+      <Advertisement area="top-banner" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
       {/* Article Header */}
       <article>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-blue-900">{article.title}</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-blue-900">{article.title}</h1>
         <p className="text-xl text-gray-600 mb-6">{article.excerpt || ''}</p>
 
         {/* Article Meta */}
@@ -77,18 +79,18 @@ export function ArticleDetail() {
 
       {/* Advertisement */}
       <section className="mb-12">
-        <Advertisement />
+        <Advertisement area="inline-content" />
       </section>
 
       {/* Related Magazine */}
       {magazine && (
         <section className="bg-blue-50 rounded-lg p-8 border-2 border-blue-200">
           <h2 className="text-2xl font-bold mb-4 text-blue-900">From This Issue</h2>
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
             <img
               src={magazine.coverImage}
               alt={magazine.title}
-              className="w-32 h-48 object-cover rounded shadow-lg border-4 border-white"
+              className="w-full sm:w-32 h-48 object-cover rounded shadow-lg border-4 border-white"
             />
             <div className="flex-1">
               <div className="inline-block bg-blue-900 text-white text-xs px-3 py-1 rounded-full mb-2">
@@ -107,5 +109,6 @@ export function ArticleDetail() {
         </section>
       )}
     </div>
+    </>
   );
 }

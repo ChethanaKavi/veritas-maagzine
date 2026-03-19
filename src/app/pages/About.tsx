@@ -3,10 +3,12 @@ import { BookOpen, Users, Globe, Award } from "lucide-react";
 
 export function About() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex gap-8 items-start">
+        <div className="flex-1 min-w-0">
       {/* Hero Section */}
       <section className="mb-16">
-        <h1 className="text-5xl font-bold mb-6 text-blue-900">About Modern Magazine</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-blue-900">About Modern Magazine</h1>
         <p className="text-xl text-gray-600 leading-relaxed">
           We are a digital-first publication committed to delivering insightful,
           well-researched content across technology, business, fashion, nature,
@@ -16,7 +18,7 @@ export function About() {
 
       {/* Mission Statement */}
       <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-6 text-blue-900">Our Mission</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-blue-900">Our Mission</h2>
         <p className="text-lg text-gray-700 leading-relaxed mb-4">
           At Modern Magazine, we believe in the power of storytelling to inform,
           inspire, and connect people across the globe. Our mission is to create
@@ -32,7 +34,7 @@ export function About() {
 
       {/* Values */}
       <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-8 text-blue-900">Our Values</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-blue-900">Our Values</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="flex gap-4">
             <div className="flex-shrink-0">
@@ -98,7 +100,7 @@ export function About() {
 
       {/* History */}
       <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-6 text-blue-900">Our Story</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-blue-900">Our Story</h2>
         <div className="bg-blue-50 rounded-lg p-8 border-2 border-blue-200">
           <p className="text-lg text-gray-700 leading-relaxed mb-4">
             Founded in 2020, Modern Magazine emerged during a time of unprecedented
@@ -121,12 +123,12 @@ export function About() {
 
       {/* Advertisement */}
       <section className="mb-12">
-        <Advertisement />
+        <Advertisement area="bottom-strip" />
       </section>
 
       {/* Contact */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-blue-900">Get in Touch</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-blue-900">Get in Touch</h2>
         <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg p-8 border-2 border-blue-200">
           <p className="text-lg text-gray-700 mb-6">
             We'd love to hear from you. Whether you have a story idea, feedback,
@@ -163,6 +165,12 @@ export function About() {
           </div>
         </div>
       </section>
+        </div>
+        {/* Sidebar Ad */}
+        <div className="hidden lg:block w-64 flex-shrink-0">
+          <Advertisement area="sidebar" />
+        </div>
+      </div>
     </div>
   );
 }

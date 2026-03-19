@@ -66,7 +66,9 @@ export function Home() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <>
+      <Advertisement area="top-banner" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Latest Magazine Feature */}
       <section className="mb-8 -mt-8">
         <div className="rounded-2xl p-4 md:p-6">
@@ -124,7 +126,7 @@ export function Home() {
                 <h3 className="text-xl font-bold text-blue-900 whitespace-nowrap z-10 shrink-0">
                   Featured Articles
                 </h3>
-                <div className="w-48 md:w-64 relative z-50 transform translate-y-1">
+                <div className="w-28 sm:w-40 md:w-64 relative z-50 transform translate-y-1">
                   <CircularCarousel articles={magneticleArticles} compact />
                 </div>
               </div>
@@ -135,60 +137,70 @@ export function Home() {
 
       {/* Latest Articles */}
       <section className="mb-16 -mt-2">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold text-blue-900">Latest Articles</h2>
-          <p className="text-sm text-gray-600">
-            from {latestMagazine.title} - {latestMagazine.publishedAt ? new Date(latestMagazine.publishedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Latest Issue'}
-          </p>
-        </div>
+        <div className="flex gap-8 items-start">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-1 sm:gap-0">
+              <h2 className="text-2xl sm:text-3xl font-bold text-blue-900">Latest Articles</h2>
+              <p className="text-sm text-gray-600">
+                from {latestMagazine.title} - {latestMagazine.publishedAt ? new Date(latestMagazine.publishedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Latest Issue'}
+              </p>
+            </div>
 
-        {/* Articles Grid - 5 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-          {currentArticles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
+            {/* Articles Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {currentArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-blue-900" />
-            </button>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-blue-900" />
+                </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  currentPage === page
-                    ? "bg-blue-900 text-white"
-                    : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-900 text-white"
+                        : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
 
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 text-blue-900" />
-            </button>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-blue-900" />
+                </button>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Sidebar Ad */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <Advertisement area="sidebar" />
+          </div>
+        </div>
       </section>
 
       {/* Advertisement */}
       <section>
-        <Advertisement />
+        <Advertisement area="bottom-strip" />
       </section>
     </div>
+    </>
   );
 }
