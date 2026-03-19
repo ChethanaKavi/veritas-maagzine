@@ -76,12 +76,12 @@ export function ArticleDetail() {
   return (
     <>
       <Advertisement area="top-banner" />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 overflow-x-hidden">
 
       {/* Article Header */}
       <article>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-blue-900 break-words">{article.title}</h1>
-        <p className="text-xl text-gray-600 mb-6">{article.excerpt || ''}</p>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-blue-900 break-all">{article.title}</h1>
+        <p className="text-base sm:text-lg text-gray-600 mb-6 break-all">{article.excerpt || ''}</p>
 
         {/* Article Meta */}
         <div className="flex flex-wrap items-center gap-4 pb-6 mb-8 border-b-2 border-blue-200">
@@ -108,7 +108,7 @@ export function ArticleDetail() {
 
         {/* Article Content */}
         <div
-          className="prose prose-lg max-w-none mb-12"
+          className="prose prose-lg max-w-none mb-12 overflow-hidden break-all"
           dangerouslySetInnerHTML={{ __html: article.content || '' }}
         />
       </article>
