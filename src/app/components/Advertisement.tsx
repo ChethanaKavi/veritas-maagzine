@@ -7,6 +7,11 @@ interface AdData {
   topic: string;
   description?: string;
   webImage?: string;
+  tabImage?: string;
+  mobileImage?: string;
+  webImageWidth?: number;
+  tabImageWidth?: number;
+  mobileImageWidth?: number;
   area?: string;
   link?: string;
   active: boolean;
@@ -39,6 +44,37 @@ async function getAds(): Promise<AdData[]> {
   return adsFetching;
 }
 
+/* ── RESPONSIVE IMAGE ──────────────────────────────────────── */
+/**
+ * Shows mobileImage on phones (<640 px), tabImage on tablets (640-1023 px),
+ * and webImage on desktop (≥1024 px), with graceful fallbacks.
+ */
+function ResponsiveAdImage({
+  ad,
+  alt,
+  className,
+  style,
+}: {
+  ad: AdData;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const fallback = ad.webImage || ad.tabImage || ad.mobileImage;
+  if (!fallback) return null;
+  return (
+    <picture>
+      {ad.mobileImage && (
+        <source media="(max-width: 639px)" srcSet={ad.mobileImage} />
+      )}
+      {ad.tabImage && (
+        <source media="(max-width: 1023px)" srcSet={ad.tabImage} />
+      )}
+      <img src={fallback} alt={alt} className={className} style={style} />
+    </picture>
+  );
+}
+
 /* ── MODAL ─────────────────────────────────────────────────── */
 function AdModal({ ad, onClose }: { ad: AdData; onClose: () => void }) {
   // Treat empty, "#", or whitespace-only as no link
@@ -67,13 +103,11 @@ function AdModal({ ad, onClose }: { ad: AdData; onClose: () => void }) {
         </button>
 
         {/* Image */}
-        {ad.webImage && (
-          <img
-            src={ad.webImage}
-            alt={ad.topic}
-            className="w-full h-36 sm:h-52 object-cover flex-shrink-0"
-          />
-        )}
+        <ResponsiveAdImage
+          ad={ad}
+          alt={ad.topic}
+          className="w-full max-h-64 object-contain bg-gray-50 flex-shrink-0"
+        />
 
         <div className="p-4 sm:p-6">
           <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">Advertisement</p>
@@ -121,7 +155,6 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
   if (ad === "loading") return null;
 
   const realAd = ad as AdData | null;
-  const image = realAd?.webImage || null;
 
   const handleLearnMore = () => setShowModal(true);
 
@@ -133,9 +166,7 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
         <div className="w-full bg-blue-900 text-white">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center gap-3">
-              {image && (
-                <img src={image} alt={realAd.topic} className="h-8 w-auto rounded flex-shrink-0 object-cover" />
-              )}
+              <ResponsiveAdImage ad={realAd} alt={realAd.topic} className="h-8 w-auto rounded flex-shrink-0 object-contain" />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider opacity-60">Advertisement</p>
                 <p className="text-sm font-bold leading-tight">{realAd.topic}</p>
@@ -164,7 +195,7 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
     return (
       <>
         <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg overflow-hidden sticky top-4">
-          {image && <img src={image} alt={topic} className="w-full h-44 object-cover" />}
+          {realAd && <ResponsiveAdImage ad={realAd} alt={topic} className="w-full max-h-64 object-contain bg-gray-50" />}
           <div className="p-4">
             <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Advertisement</p>
             <h4 className="font-bold text-blue-900 text-sm mb-1">{topic}</h4>
@@ -195,7 +226,7 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
     return (
       <>
         <div className="bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg overflow-hidden sticky top-4">
-          {image && <img src={image} alt={topic} className="w-full h-44 object-cover" />}
+          {realAd && <ResponsiveAdImage ad={realAd} alt={topic} className="w-full max-h-64 object-contain bg-gray-50" />}
           <div className="p-4">
             <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Advertisement</p>
             <h4 className="font-bold text-blue-900 text-sm mb-1">{topic}</h4>
@@ -227,8 +258,8 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
       <>
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-6">
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            {image && (
-              <img src={image} alt={topic} className="h-20 w-32 object-cover rounded flex-shrink-0" />
+            {realAd && (
+              <ResponsiveAdImage ad={realAd} alt={topic} className="h-20 w-32 object-contain rounded flex-shrink-0 bg-gray-50" />
             )}
             <div className="flex-1 text-center sm:text-left">
               <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Advertisement</p>
@@ -262,8 +293,8 @@ export function Advertisement({ area = "inline-content" }: AdvertisementProps) {
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-8 text-center">
         <div className="max-w-2xl mx-auto">
           <p className="text-xs text-blue-600 mb-2 font-semibold">ADVERTISEMENT</p>
-          {image && (
-            <img src={image} alt={topic} className="w-full h-48 object-cover rounded-lg mb-4" />
+          {realAd && (
+            <ResponsiveAdImage ad={realAd} alt={topic} className="w-full max-h-64 object-contain rounded-lg mb-4 bg-gray-50" />
           )}
           <h3 className="text-2xl font-bold mb-3 text-blue-900">{topic}</h3>
           <p className="text-gray-700 mb-4">{description}</p>

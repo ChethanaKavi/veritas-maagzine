@@ -130,8 +130,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <span className="font-bold">Veritas Admin</span>
         </div>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        <main className="flex-1 overflow-y-auto bg-gray-50 overscroll-none">
+          <div className="p-4 sm:p-6 lg:p-8 min-h-full">{children}</div>
         </main>
       </div>
     </div>

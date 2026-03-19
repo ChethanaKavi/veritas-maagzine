@@ -272,8 +272,8 @@ export function AdminAdvertisements() {
                     </div>
                   </div>
                   {newAd.webImage && (
-                    <div className="mt-2 w-32 aspect-[3/4] rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
-                      <img src={newAd.webImage} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="mt-2 w-32 rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
+                      <img src={newAd.webImage} alt="Preview" className="w-full object-contain" />
                     </div>
                   )}
                   <div className="mt-2 text-sm text-gray-600">{newAd.webImageWidth ? `Image width: ${newAd.webImageWidth} px` : null}</div>
@@ -290,8 +290,8 @@ export function AdminAdvertisements() {
                     </div>
                   </div>
                   {newAd.tabImage && (
-                    <div className="mt-2 w-32 aspect-[3/4] rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
-                      <img src={newAd.tabImage} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="mt-2 w-32 rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
+                      <img src={newAd.tabImage} alt="Preview" className="w-full object-contain" />
                     </div>
                   )}
                   <div className="mt-2 text-sm text-gray-600">{newAd.tabImageWidth ? `Image width: ${newAd.tabImageWidth} px` : null}</div>
@@ -308,8 +308,8 @@ export function AdminAdvertisements() {
                     </div>
                   </div>
                   {newAd.mobileImage && (
-                    <div className="mt-2 w-32 aspect-[3/4] rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
-                      <img src={newAd.mobileImage} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="mt-2 w-32 rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50">
+                      <img src={newAd.mobileImage} alt="Preview" className="w-full object-contain" />
                     </div>
                   )}
                   <div className="mt-2 text-sm text-gray-600">{newAd.mobileImageWidth ? `Image width: ${newAd.mobileImageWidth} px` : null}</div>
@@ -393,7 +393,7 @@ export function AdminAdvertisements() {
                 <tr key={ad.id} className="hover:bg-blue-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="w-12 h-16 rounded overflow-hidden border-2 border-blue-100 bg-gray-50 flex items-center justify-center">
-                      <img src={ad.webImage || ad.tabImage || ad.mobileImage} alt={ad.topic} className="w-full h-full object-cover rounded" />
+                      <img src={ad.webImage || ad.tabImage || ad.mobileImage} alt={ad.topic} className="w-full h-full object-contain rounded" />
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -555,7 +555,7 @@ export function AdminAdvertisements() {
               <DialogDescription>{viewAd.area}</DialogDescription>
             </DialogHeader>
             <div className="pt-4">
-              <img src={viewAd.webImage || viewAd.tabImage || viewAd.mobileImage} alt={viewAd.topic} className="w-full h-48 object-cover rounded" />
+              <img src={viewAd.webImage || viewAd.tabImage || viewAd.mobileImage} alt={viewAd.topic} className="w-full max-h-64 object-contain rounded bg-gray-50" />
               <p className="mt-4 text-sm text-gray-700">{viewAd.description}</p>
             </div>
             <DialogFooter>
