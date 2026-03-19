@@ -6,8 +6,8 @@ export function GoogleAnalytics() {
   const location = useLocation();
 
   useEffect(() => {
-    // Track page view on route change
-    trackPageView(location.pathname + location.search);
+    // Track page view on route change, using whatever document.title is set at that point
+    trackPageView(location.pathname + location.search, document.title);
   }, [location]);
 
   return null;

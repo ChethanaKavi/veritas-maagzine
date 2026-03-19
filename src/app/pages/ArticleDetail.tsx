@@ -34,6 +34,41 @@ export function ArticleDetail() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [id]);
 
+  // Track view in DB (once per browser session per article)
+  useEffect(() => {
+    if (!article?.id) return;
+
+    // Set page title so GA4 "Pages and screens" shows the article name
+    document.title = `${article.title} — Veritas Magazine`;
+
+    // Fire GA4 page_view with article title (overrides the generic /articles/:id view)
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-JDT8YSE3TM', {
+        page_title: article.title,
+        page_path: `/articles/${article.id}`,
+      });
+    }
+
+    const sessionKey = `viewed_article_${article.id}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
+
+    // Save view to DB
+    fetch(`/api/articles/${article.id}/view`, { method: 'POST' })
+      .then((r) => r.json())
+      .then((data) => console.log(`[View] Article DB viewCount: ${data.viewCount}`))
+      .catch(() => {});
+
+    // Fire GA4 custom event with article details
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'article_view', {
+        article_id: article.id,
+        article_title: article.title,
+        magazine_title: magazine?.title || '',
+      });
+    }
+  }, [article?.id, magazine?.title]);
+
   if (loading) return <div className="max-w-4xl mx-auto px-4 py-12">Loading...</div>;
   if (!article) return <Navigate to="/articles" replace />;
 

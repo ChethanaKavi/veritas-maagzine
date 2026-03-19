@@ -106,6 +106,14 @@ export function AdminMagazines() {
           setMagList((prev) => prev.map((m) => (m.cmmuanId === editingId ? saved : m)));
         } else {
           setMagList((prev) => [saved, ...prev]);
+          // Fire GA4 event for new magazine creation
+          if (typeof (window as any).gtag === 'function') {
+            (window as any).gtag('event', 'create_magazine', {
+              magazine_id: saved.id,
+              magazine_title: saved.title,
+            });
+          }
+          console.log(`[GA] create_magazine event fired for: ${saved.title}`);
         }
       } else {
         console.error('Failed to save magazine');

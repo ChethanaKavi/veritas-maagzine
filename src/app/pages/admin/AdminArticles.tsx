@@ -120,6 +120,15 @@ export function AdminArticles() {
           setArticleList((prev) => prev.map((a) => (a.id === editingId ? saved : a)));
         } else {
           setArticleList((prev) => [saved, ...prev]);
+          // Fire GA4 event for new article creation
+          if (typeof (window as any).gtag === 'function') {
+            (window as any).gtag('event', 'create_article', {
+              article_id: saved.id,
+              article_title: saved.title,
+              magazine_id: saved.magazineId,
+            });
+          }
+          console.log(`[GA] create_article event fired for: ${saved.title}`);
         }
         setIsAdding(false);
         setEditingId(null);

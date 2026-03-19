@@ -492,6 +492,49 @@ app.get('/dashboard-stats', async (req, res) => {
   }
 });
 
+// Track an article view — increments viewCount in DB and logs to ArticleView table
+app.post('/articles/:id/view', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [articleView, article] = await prisma.$transaction([
+      prisma.articleView.create({
+        data: { articleId: id },
+      }),
+      prisma.article.update({
+        where: { id },
+        data: { viewCount: { increment: 1 } },
+        select: { id: true, title: true, viewCount: true },
+      }),
+    ]);
+    console.log(`[VIEW] Article "${article.title}" | total views: ${article.viewCount}`);
+    res.json({ viewCount: article.viewCount, logId: articleView.id });
+  } catch (error) {
+    console.error(`Error tracking article view ${id}:`, error);
+    res.status(500).json({ error: 'Failed to track article view' });
+  }
+});
+
+// Track a magazine view — increments viewCount in DB
+app.post('/magazines/:id/view', async (req, res) => {
+  const { id } = req.params;
+  try {
+    // viewCount is nullable — safely coalesce to 0 before incrementing
+    const current = await prisma.magazine.findUnique({ where: { id }, select: { viewCount: true, title: true } });
+    if (!current) return res.status(404).json({ error: 'Magazine not found' });
+    const newCount = (current.viewCount ?? 0) + 1;
+    const magazine = await prisma.magazine.update({
+      where: { id },
+      data: { viewCount: newCount },
+      select: { id: true, title: true, viewCount: true },
+    });
+    console.log(`[VIEW] Magazine "${magazine.title}" | total views: ${magazine.viewCount}`);
+    res.json({ viewCount: magazine.viewCount });
+  } catch (error) {
+    console.error(`Error tracking magazine view ${id}:`, error);
+    res.status(500).json({ error: 'Failed to track magazine view' });
+  }
+});
+
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 app.listen(port, () => {
   console.log(`Backend server listening on http://localhost:${port}`);

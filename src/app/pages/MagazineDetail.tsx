@@ -49,6 +49,40 @@ export function MagazineDetail() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [id]);
+
+  // Track view in DB (once per browser session per magazine)
+  useEffect(() => {
+    if (!magazine?.id) return;
+
+    // Set page title so GA4 "Pages and screens" shows the magazine name
+    document.title = `${magazine.title} — Veritas Magazine`;
+
+    // Fire GA4 page_view with magazine title (overrides the generic /magazines/:id view)
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-JDT8YSE3TM', {
+        page_title: magazine.title,
+        page_path: `/magazines/${magazine.id}`,
+      });
+    }
+
+    const sessionKey = `viewed_magazine_${magazine.id}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
+
+    // Save view to DB
+    fetch(`/api/magazines/${magazine.id}/view`, { method: 'POST' })
+      .then((r) => r.json())
+      .then((data) => console.log(`[View] Magazine DB viewCount: ${data.viewCount}`))
+      .catch(() => {});
+
+    // Fire GA4 custom event with magazine details
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'magazine_view', {
+        magazine_id: magazine.id,
+        magazine_title: magazine.title,
+      });
+    }
+  }, [magazine?.id]);
   // Fetch published articles for this magazine from backend
   useEffect(() => {
     (async () => {
