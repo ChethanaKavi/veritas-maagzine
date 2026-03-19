@@ -41,11 +41,12 @@ export function ArticleDetail() {
     // Set page title so GA4 "Pages and screens" shows the article name
     document.title = `${article.title} — Veritas Magazine`;
 
-    // Fire GA4 page_view with article title (overrides the generic /articles/:id view)
+    // Fire GA4 page_view with article title
     if (typeof window.gtag === 'function') {
-      window.gtag('config', 'G-JDT8YSE3TM', {
+      window.gtag('event', 'page_view', {
         page_title: `${article.title} — Veritas Magazine`,
         page_path: `/articles/${article.id}`,
+        page_location: window.location.href,
       });
     }
 

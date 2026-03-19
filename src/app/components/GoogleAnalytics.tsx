@@ -6,8 +6,11 @@ export function GoogleAnalytics() {
   const location = useLocation();
 
   useEffect(() => {
-    // Track page view on route change, using whatever document.title is set at that point
-    trackPageView(location.pathname + location.search, document.title);
+    // Small delay so page components can set document.title before we read it
+    const timer = setTimeout(() => {
+      trackPageView(location.pathname + location.search, document.title);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [location]);
 
   return null;

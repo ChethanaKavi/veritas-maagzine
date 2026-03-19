@@ -9,12 +9,13 @@ declare global {
 
 const GA_ID = "G-JDT8YSE3TM";
 
-// Track page views — fires a GA4 page_view with path + title
+// Track page views — fires a GA4 page_view event with path + title
 export const trackPageView = (url: string, title?: string) => {
   if (window.gtag) {
-    window.gtag("config", GA_ID, {
-      page_path: url,
+    window.gtag('event', 'page_view', {
       page_title: title || document.title,
+      page_path: url,
+      page_location: window.location.href,
     });
   }
 };
