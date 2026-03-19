@@ -395,10 +395,12 @@ export function AdminAdvertisements() {
                   <SelectTrigger>
                     <SelectValue placeholder="All articles in this magazine" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-w-sm">
                     <SelectItem value="__all__">All articles in this magazine</SelectItem>
                     {magazineArticles.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.title}</SelectItem>
+                      <SelectItem key={a.id} value={a.id}>
+                        <span className="block truncate max-w-[280px]">{a.title}</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
