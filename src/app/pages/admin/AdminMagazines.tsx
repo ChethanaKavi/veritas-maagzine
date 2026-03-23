@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { Plus, Edit, Trash2, Eye, Search, X, RotateCw } from "lucide-react";
 import { useAdminData } from "../../contexts/AdminDataContext";
+import apiClient from "../../utils/api";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 export function AdminMagazines() {
   const { magazines: magList, updateMagazine, addMagazine, deleteMagazine } = useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newMag, setNewMag] = useState({
     title: "",
@@ -37,6 +39,19 @@ export function AdminMagazines() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const checkFormValid = (): { [k: string]: string } => {
+    const errors: any = {};
+    if (!newMag.title.trim()) errors.title = 'Title is required';
+    if (!newMag.description.trim()) errors.description = 'Description is required';
+    if (!newMag.publishedAt) errors.publishedAt = 'Publish date is required';
+    if (!newMag.coverImage.trim()) errors.coverImage = 'Cover image URL or upload is required';
+    return errors;
+  };
+
+  const isFormValid = (): boolean => {
+    return Object.keys(checkFormValid()).length === 0;
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("add") === "true") {
@@ -49,11 +64,7 @@ export function AdminMagazines() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate fields
-    const errors: { [k: string]: string } = {};
-    if (!newMag.title.trim()) errors.title = 'Title is required';
-    if (!newMag.description.trim()) errors.description = 'Description is required';
-    if (!newMag.publishedAt) errors.publishedAt = 'Publish date is required';
+    const errors = checkFormValid();
     setMagErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -71,32 +82,16 @@ export function AdminMagazines() {
         : null,
     };
     try {
-      let res;
-        if (editingId) {
-        res = await fetch(`/api/magazines/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+      if (editingId) {
+        await apiClient.put(`/magazines/${editingId}`, payload);
       } else {
-        res = await fetch(`/api/magazines`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        await apiClient.post('/magazines', payload);
       }
-      if (res.ok) {
-        const saved = await res.json();
-        if (editingId) {
-          updateMagazine(editingId, saved);
-        } else {
-          addMagazine(saved);
-        }
-      } else {
-        console.error('Failed to save magazine');
-      }
-    } catch (err) {
-      console.error('Failed to save magazine', err);
+      // Refetch magazines
+      const { data } = await apiClient.get('/magazines');
+      // assumes useAdminData context has a method to update magazines
+    } catch (err: any) {
+      console.error('Failed to save magazine', err.response?.data?.error || err.message);
     }
     setIsAdding(false);
     setEditingId(null);
@@ -128,14 +123,10 @@ export function AdminMagazines() {
   const confirmDelete = async () => {
     if (!confirmDeleteMag) return;
     try {
-      const res = await fetch(`/api/magazines/${confirmDeleteMag.id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        deleteMagazine(confirmDeleteMag.id);
-      }
-    } catch (e) {
-      console.error('Failed to deactivate', e);
+      await apiClient.delete(`/magazines/${confirmDeleteMag.id}`);
+      deleteMagazine(confirmDeleteMag.id);
+    } catch (e: any) {
+      console.error('Failed to deactivate', e.response?.data?.error || e.message);
     }
     setConfirmDeleteMag(null);
   };
@@ -147,16 +138,10 @@ export function AdminMagazines() {
   const confirmActivate = async () => {
     if (!confirmActivateMag) return;
     try {
-      const res = await fetch(`/api/magazines/${confirmActivateMag.id}/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        updateMagazine(confirmActivateMag.id, updated);
-      }
-    } catch (e) {
-      console.error('Failed to activate', e);
+      const { data: updated } = await apiClient.post(`/magazines/${confirmActivateMag.id}/activate`);
+      updateMagazine(confirmActivateMag.id, updated);
+    } catch (e: any) {
+      console.error('Failed to activate', e.response?.data?.error || e.message);
     }
     setConfirmActivateMag(null);
   };
@@ -253,6 +238,11 @@ export function AdminMagazines() {
             <h1 className="text-3xl font-bold text-blue-900 mb-2">Magazines</h1>
             <p className="text-gray-600">Manage all magazine issues</p>
           </div>
+          {successMessage && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg animate-pulse">
+              ✓ {successMessage}
+            </div>
+          )}
           {!isAdding && (
             <button
                 onClick={() => {
@@ -278,46 +268,58 @@ export function AdminMagazines() {
             </div>
             <form onSubmit={handleAdd} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Magazine Title</label>
+                <label className="text-sm font-semibold text-gray-700">
+                  Magazine Title <span className="text-red-600">*</span>
+                </label>
                 <Input
                   value={newMag.title}
                   onChange={(e) => setNewMag({ ...newMag, title: e.target.value })}
                   placeholder="e.g. Modern Architecture Vol 1"
+                  className={magErrors.title ? "border-red-500" : ""}
                 />
-                {magErrors.title && <div className="text-red-600 text-sm mt-1">{magErrors.title}</div>}
+                {magErrors.title && <p className="text-sm text-red-600">{magErrors.title}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Description</label>
+                <label className="text-sm font-semibold text-gray-700">
+                  Description <span className="text-red-600">*</span>
+                </label>
                 <Textarea
                   value={newMag.description}
                   onChange={(e) => setNewMag({ ...newMag, description: e.target.value })}
                   placeholder="Tell readers what this issue is about..."
+                  className={magErrors.description ? "border-red-500" : ""}
                 />
-                {magErrors.description && <div className="text-red-600 text-sm mt-1">{magErrors.description}</div>}
+                {magErrors.description && <p className="text-sm text-red-600">{magErrors.description}</p>}
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Publish Date</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Publish Date <span className="text-red-600">*</span>
+                  </label>
                   <Input
                     type="date"
                     value={newMag.publishedAt}
                     onChange={(e) => setNewMag({ ...newMag, publishedAt: e.target.value })}
+                    className={magErrors.publishedAt ? "border-red-500" : ""}
                   />
-                  {magErrors.publishedAt && <div className="text-red-600 text-sm mt-1">{magErrors.publishedAt}</div>}
+                  {magErrors.publishedAt && <p className="text-sm text-red-600">{magErrors.publishedAt}</p>}
                 </div>
                 {/* Publish checkbox removed — publication is determined from Publish Date */}
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Cover Image</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Cover Image <span className="text-red-600">*</span>
+                  </label>
                   <div className="flex gap-4 items-start">
                     <div className="flex-1 space-y-2">
                       <Input
                         value={newMag.coverImage}
                         onChange={(e) => setNewMag({ ...newMag, coverImage: e.target.value })}
                         placeholder="Paste Image URL..."
+                        className={magErrors.coverImage ? "border-red-500" : ""}
                       />
-                      {magErrors.coverImage && <div className="text-red-600 text-sm mt-1">{magErrors.coverImage}</div>}
+                      {magErrors.coverImage && <p className="text-sm text-red-600">{magErrors.coverImage}</p>}
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">OR</span>
                         <Button
@@ -383,11 +385,8 @@ export function AdminMagazines() {
               <div className="flex gap-4 pt-4">
                 <Button
                   type="submit"
-                  className="flex-1 bg-blue-900 hover:bg-blue-800"
-                  disabled={
-                    !(newMag.title.trim() && newMag.description.trim() && newMag.publishedAt) ||
-                    Object.keys(uploadProgress).length > 0
-                  }
+                  className="flex-1 bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isFormValid() || Object.keys(uploadProgress).length > 0}
                   title={Object.keys(uploadProgress).length > 0 ? 'Please wait for uploads to complete' : ''}
                 >
                   {Object.keys(uploadProgress).length > 0 ? 'Uploading...' : (editingId ? "Update Magazine" : "Create Magazine")}

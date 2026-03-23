@@ -78,7 +78,7 @@ export function ArticleDetail() {
 
       {/* Advertisement */}
       <section className="mb-12">
-        <Advertisement />
+        <Advertisement area="Footer" className="rounded-lg overflow-hidden" />
       </section>
 
       {/* Related Magazine */}

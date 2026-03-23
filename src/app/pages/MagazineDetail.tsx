@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Navigate, Link } from "react-router-dom";
 import { ArticleCard } from "../components/ArticleCard";
+import { Advertisement } from "../components/Advertisement";
 import { CircularCarousel } from "../components/CircularCarousel";
 import { Loading } from "../components/Loading";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -218,6 +219,11 @@ export function MagazineDetail() {
             )}
           </>
         )}
+      </section>
+
+      {/* Advertisement */}
+      <section className="mb-12">
+        <Advertisement area="Footer" className="rounded-lg overflow-hidden" />
       </section>
     </div>
   );

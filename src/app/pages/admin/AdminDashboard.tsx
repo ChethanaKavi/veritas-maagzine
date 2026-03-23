@@ -1,6 +1,7 @@
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../utils/api";
 import {
   BookOpen,
   FileText,
@@ -19,21 +20,17 @@ export function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await (await import("../../utils/api")).apiFetch("/api/dashboard-stats");
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
-        }
-        const data = await response.json();
+        const { data } = await apiClient.get("/dashboard-stats");
         setStats({
           totalMagazines: data.totalMagazines,
           totalArticles: data.totalArticles,
           totalViews: data.totalViews,
-          activeReaders: data.activeReaders, // This is a mock value for now
+          activeReaders: data.activeReaders,
         });
         setRecentArticles(data.recentArticles);
         setRecentMagazines(data.recentMagazines);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+      } catch (error: any) {
+        console.error("Error fetching dashboard data:", error.response?.data?.error || error.message);
       }
     };
 

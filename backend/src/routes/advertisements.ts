@@ -28,8 +28,8 @@ router.get('/advertisements/:id', async (req, res) => {
 
 router.post('/advertisements', async (req, res) => {
   try {
-    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } = req.body;
-    const newAd = await prisma.advertisement.create({ data: { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } });
+    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, active } = req.body;
+    const newAd = await prisma.advertisement.create({ data: { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, active: active ?? true } });
     res.status(201).json(newAd);
   } catch (error) {
     console.error('Error creating advertisement:', error);
@@ -40,8 +40,8 @@ router.post('/advertisements', async (req, res) => {
 router.put('/advertisements/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } = req.body;
-    const updatedAd = await prisma.advertisement.update({ where: { id }, data: { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link } });
+    const { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, active } = req.body;
+    const updatedAd = await prisma.advertisement.update({ where: { id }, data: { topic, description, webImage, tabImage, mobileImage, webImageWidth, tabImageWidth, mobileImageWidth, area, link, active } });
     res.json(updatedAd);
   } catch (error) {
     console.error(`Error updating advertisement ${id}:`, error);
@@ -74,6 +74,22 @@ router.post('/advertisements/:id/activate', async (req, res) => {
 // Placements
 router.get('/placements', async (req, res) => {
   try {
+    // Initialize default placements if they don't exist
+    const defaultPlacements = [
+      { value: "homepage-topbar", label: "Homepage Topbar" },
+      { value: "homepage-bottom", label: "Homepage Bottom" },
+      { value: "leftside-in-the-magazine-page", label: "Left Side - Magazine Page" },
+      { value: "rightsidebar-in-the-article-page", label: "Right Sidebar - Article Page" },
+      { value: "Footer", label: "Footer" },
+    ];
+    
+    for (const p of defaultPlacements) {
+      const existing = await prisma.placement.findUnique({ where: { value: p.value } });
+      if (!existing) {
+        await prisma.placement.create({ data: p });
+      }
+    }
+    
     const placements = await prisma.placement.findMany({ orderBy: { createdAt: 'asc' } });
     res.json(placements);
   } catch (error) {

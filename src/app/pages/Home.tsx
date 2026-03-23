@@ -87,15 +87,7 @@ export function Home() {
 
             {/* Right Side - Description and Circular Carousel */}
             <div className="flex flex-col justify-between h-full mt-0">
-              <div
-                className="relative rounded-none border-l-4 border-blue-900 bg-white shadow-sm md:-ml-6 lg:-ml-12 pl-3 h-full flex-1"
-                style={{
-                  backgroundImage: `url(${latestMagazine.coverImage})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
-                <div className="absolute inset-0 bg-white/80" />
+              <div className="relative rounded-none border-l-4 border-blue-900 bg-white shadow-sm md:-ml-6 lg:-ml-12 pl-3 h-full flex-1">
                 <div className="relative p-6 h-full flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="h-px w-6 bg-blue-900/50"></span>
@@ -186,8 +178,13 @@ export function Home() {
       </section>
 
       {/* Advertisement */}
-      <section>
-        <Advertisement />
+      <section className="mb-10">
+        <Advertisement area="homepage-topbar" className="rounded-lg overflow-hidden" />
+      </section>
+
+      {/* Bottom Advertisement */}
+      <section className="mb-10">
+        <Advertisement area="homepage-bottom" className="rounded-lg overflow-hidden" />
       </section>
     </div>
   );

@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { MagazineDrawer } from "./MagazineDrawer";
 import { Input } from "./ui/input";
 
 export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -20,6 +22,15 @@ export function Navbar() {
       return location.pathname === "/";
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to articles page with search query as URL parameter
+      navigate(`/articles?search=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery("");
+    }
   };
 
   const parts = location.pathname.split('/').filter(Boolean);
@@ -47,11 +58,23 @@ export function Navbar() {
               </button>
               {/* Search (placed after hamburger) */}
               <div className="hidden sm:block">
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-48 md:w-80"
-                />
+                <form onSubmit={handleSearch} className="relative">
+                  <Input
+                    type="search"
+                    placeholder="Search articles..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-48 md:w-80"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="submit"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-900 transition-colors"
+                    >
+                      <Search className="w-4 h-4" />
+                    </button>
+                  )}
+                </form>
               </div>
             </div>
 

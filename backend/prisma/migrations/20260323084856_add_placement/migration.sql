@@ -10,9 +10,7 @@
   - You are about to drop the column `position` on the `Advertisement` table. All the data in the column will be lost.
   - You are about to drop the column `startDate` on the `Advertisement` table. All the data in the column will be lost.
   - You are about to drop the column `title` on the `Advertisement` table. All the data in the column will be lost.
-  - You are about to drop the column `authorId` on the `Article` table. All the data in the column will be lost.
   - You are about to drop the `AdPlacement` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Author` table. If the table is not empty, all the data it contains will be lost.
   - Added the required column `topic` to the `Advertisement` table without a default value. This is not possible if the table is not empty.
   - Added the required column `updatedAt` to the `Advertisement` table without a default value. This is not possible if the table is not empty.
 
@@ -25,9 +23,6 @@ ALTER TABLE "AdPlacement" DROP CONSTRAINT "AdPlacement_articleId_fkey";
 
 -- DropForeignKey
 ALTER TABLE "AdPlacement" DROP CONSTRAINT "AdPlacement_magazineId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Article" DROP CONSTRAINT "Article_authorId_fkey";
 
 -- AlterTable
 ALTER TABLE "Advertisement" DROP COLUMN "clickCount",
@@ -46,11 +41,19 @@ ADD COLUMN     "topic" TEXT NOT NULL,
 ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL,
 ADD COLUMN     "webImageWidth" INTEGER;
 
--- AlterTable
-ALTER TABLE "Article" DROP COLUMN "authorId";
-
 -- DropTable
 DROP TABLE "AdPlacement";
 
--- DropTable
-DROP TABLE "Author";
+-- CreateTable
+CREATE TABLE "Placement" (
+    "id" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Placement_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Placement_value_key" ON "Placement"("value");

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Advertisement } from "../components/Advertisement";
 import { Filter } from "lucide-react";
 
 export function Magazines() {
@@ -131,6 +132,11 @@ export function Magazines() {
           <p className="text-gray-600 text-lg">No magazines found for the selected month.</p>
         </div>
       )}
+
+      {/* Advertisement */}
+      <section className="mb-12 mt-12">
+        <Advertisement area="Footer" className="rounded-lg overflow-hidden" />
+      </section>
     </div>
   );
 }

@@ -98,9 +98,6 @@ CREATE TABLE "_ArticleToTag" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Author_email_key" ON "Author"("email");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name");
 
 -- CreateIndex
@@ -117,9 +114,6 @@ CREATE INDEX "_ArticleToTag_B_index" ON "_ArticleToTag"("B");
 
 -- AddForeignKey
 ALTER TABLE "Article" ADD CONSTRAINT "Article_magazineId_fkey" FOREIGN KEY ("magazineId") REFERENCES "Magazine"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Article" ADD CONSTRAINT "Article_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "Author"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ArticleView" ADD CONSTRAINT "ArticleView_articleId_fkey" FOREIGN KEY ("articleId") REFERENCES "Article"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

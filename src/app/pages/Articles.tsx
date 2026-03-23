@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArticleCard } from "../components/ArticleCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Advertisement } from "../components/Advertisement";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 export function Articles() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
   const [cols, setCols] = useState(5);
-
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
 
   const [allArticles, setAllArticles] = useState<any[]>([]);
 
@@ -25,8 +27,14 @@ export function Articles() {
     })();
   }, []);
 
-  // No filter, use all fetched articles
-  const filteredArticles = allArticles;
+  // Filter articles based on search query
+  const filteredArticles = allArticles.filter(article => {
+    const query = searchQuery.toLowerCase();
+    return (
+      article.title.toLowerCase().includes(query) ||
+      article.content.toLowerCase().includes(query)
+    );
+  });
 
   // Pagination
   const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
@@ -60,70 +68,103 @@ export function Articles() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <Link to="/" className="hover:text-blue-900 transition-colors">Home</Link>
-        <span className="text-gray-300">/</span>
-        <span className="text-blue-900 font-medium">Articles</span>
-      </nav>
-
-      <h1 className="text-3xl md:text-4xl font-bold mb-2 text-blue-900">All Articles</h1>
-      <p className="text-gray-600 mb-6 text-sm md:text-base">
-        Explore our complete collection of articles across all magazines
-      </p>
-
-      {/* Articles Grid - 5 columns */}
-      {currentArticles.length > 0 ? (
-        <>
-          <div className="mb-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {visibleArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-blue-900" />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    currentPage === page
-                      ? "bg-blue-900 text-white"
-                      : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-blue-900" />
-              </button>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-600 text-lg">No articles found matching your search.</p>
+    <div className="flex gap-4 lg:gap-6 max-w-[1400px] mx-auto px-2 sm:px-4 lg:px-6 py-2 md:py-6">
+      {/* Left Sidebar Advertisement */}
+      <div className="hidden xl:block w-40 flex-shrink-0">
+        <div className="sticky top-4">
+          <Advertisement area="leftside-in-the-magazine-page" className="rounded-lg overflow-hidden" />
         </div>
-      )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+          <Link to="/" className="hover:text-blue-900 transition-colors">Home</Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-blue-900 font-medium">Articles</span>
+        </nav>
+
+        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-blue-900">
+          {searchQuery ? `Search Results for "${searchQuery}"` : 'All Articles'}
+        </h1>
+        <p className="text-gray-600 mb-6 text-sm md:text-base">
+          {searchQuery 
+            ? `Found ${filteredArticles.length} article${filteredArticles.length !== 1 ? 's' : ''} matching your search`
+            : 'Explore our complete collection of articles across all magazines'
+          }
+        </p>
+
+        {/* Articles Grid - 5 columns */}
+        {currentArticles.length > 0 ? (
+          <>
+            <div className="mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                {visibleArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
+              </div>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-blue-900" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      currentPage === page
+                        ? "bg-blue-900 text-white"
+                        : "border-2 border-blue-200 text-blue-900 hover:bg-blue-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-md border-2 border-blue-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-blue-900" />
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Search className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600 text-lg mb-2">
+              {searchQuery 
+                ? `No articles found matching "${searchQuery}"`
+                : 'No articles available'
+              }
+            </p>
+            {searchQuery && (
+              <p className="text-gray-500 text-sm">
+                Try searching with different keywords
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Right Sidebar Advertisement */}
+      <div className="hidden xl:block w-40 flex-shrink-0">
+        <div className="sticky top-4">
+          <Advertisement area="rightsidebar-in-the-article-page" className="rounded-lg overflow-hidden" />
+        </div>
+      </div>
     </div>
   );
 }

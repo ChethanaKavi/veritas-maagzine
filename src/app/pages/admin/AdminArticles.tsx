@@ -5,6 +5,7 @@ import { Plus, Edit, Trash2, Eye, Search, X, Upload, RotateCw } from "lucide-rea
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useAdminData } from "../../contexts/AdminDataContext";
+import apiClient from "../../utils/api";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import {
 export function AdminArticles() {
   const { articles: articleList, magazines: magazineList, updateArticle, addArticle, deleteArticle } = useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newArticle, setNewArticle] = useState({
     title: "",
@@ -47,6 +49,21 @@ export function AdminArticles() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const checkFormValid = (): { [k: string]: string } => {
+    const errors: any = {};
+    if (!newArticle.title.trim()) errors.title = 'Title is required';
+    const textContent = newArticle.content.replace(/<[^>]*>/g, '').trim();
+    if (!textContent) errors.content = 'Content is required';
+    if (!newArticle.coverImgUrl.trim()) errors.coverImgUrl = 'Cover image is required';
+    if (!newArticle.magazineId) errors.magazineId = 'Magazine selection is required';
+    if (!newArticle.publishedAt) errors.publishedAt = 'Publish date is required';
+    return errors;
+  };
+
+  const isFormValid = (): boolean => {
+    return Object.keys(checkFormValid()).length === 0;
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("add") === "true") {
@@ -58,13 +75,7 @@ export function AdminArticles() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errors: { [k: string]: string } = {};
-    if (!newArticle.title.trim()) errors.title = 'Title is required';
-    const textContent = newArticle.content.replace(/<[^>]*>/g, '').trim();
-    if (!textContent) errors.content = 'Content is required';
-    if (!newArticle.coverImgUrl.trim()) errors.coverImgUrl = 'Cover image is required';
-    if (!newArticle.magazineId) errors.magazineId = 'Magazine selection is required';
-    if (!newArticle.publishedAt) errors.publishedAt = 'Publish date is required';
+    const errors = checkFormValid();
     setArticleErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -83,36 +94,21 @@ export function AdminArticles() {
     };
     
     try {
-      let res;
       if (editingId) {
-        res = await fetch(`/api/articles/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const { data: saved } = await apiClient.put(`/articles/${editingId}`, payload);
+        updateArticle(editingId, saved);
+        setSuccessMessage('Article updated successfully!');
       } else {
-        res = await fetch(`/api/articles`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const { data: saved } = await apiClient.post('/articles', payload);
+        addArticle(saved);
+        setSuccessMessage('Article published successfully!');
       }
-      
-      if (res.ok) {
-        const saved = await res.json();
-        if (editingId) {
-          updateArticle(editingId, saved);
-        } else {
-          addArticle(saved);
-        }
-        setIsAdding(false);
-        setEditingId(null);
-        setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" });
-      } else {
-        console.error('Failed to save article');
-      }
-    } catch (err) {
-      console.error('Failed to save article', err);
+      setIsAdding(false);
+      setEditingId(null);
+      setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" });
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Failed to save article', err.response?.data?.error || err.message);
     }
   };
 
@@ -141,14 +137,10 @@ export function AdminArticles() {
   const confirmDelete = async () => {
     if (!confirmDeleteArticle) return;
     try {
-      const res = await fetch(`/api/articles/${confirmDeleteArticle.id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        deleteArticle(confirmDeleteArticle.id);
-      }
-    } catch (e) {
-      console.error('Failed to deactivate', e);
+      await apiClient.delete(`/articles/${confirmDeleteArticle.id}`);
+      deleteArticle(confirmDeleteArticle.id);
+    } catch (e: any) {
+      console.error('Failed to delete', e.response?.data?.error || e.message);
     }
     setConfirmDeleteArticle(null);
   };
@@ -160,17 +152,10 @@ export function AdminArticles() {
   const confirmActivate = async () => {
     if (!confirmActivateArticle) return;
     try {
-      const res = await fetch(`/api/articles/${confirmActivateArticle.id}/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: true }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        updateArticle(confirmActivateArticle.id, updated);
-      }
-    } catch (e) {
-      console.error('Failed to activate', e);
+      const { data: updated } = await apiClient.post(`/articles/${confirmActivateArticle.id}/activate`, { active: true });
+      updateArticle(confirmActivateArticle.id, updated);
+    } catch (e: any) {
+      console.error('Failed to activate', e.response?.data?.error || e.message);
     }
     setConfirmActivateArticle(null);
   };
@@ -263,6 +248,11 @@ export function AdminArticles() {
             <h1 className="text-3xl font-bold text-blue-900 mb-2">Articles</h1>
             <p className="text-gray-600">Manage all articles</p>
           </div>
+          {successMessage && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg animate-pulse">
+              ✓ {successMessage}
+            </div>
+          )}
           {!isAdding && (
             <button
               onClick={() => {
@@ -285,52 +275,62 @@ export function AdminArticles() {
           )}
         </div>
 
+        {/* Add/Edit Form */}
         {isAdding ? (
           <div className="bg-white rounded-lg border-2 border-blue-200 p-8 max-w-2xl mb-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-blue-900">{editingId ? "Edit Article" : "Add New Article"}</h2>
-              <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" }); }}>
+              <Button variant="ghost" size="icon" onClick={() => { setIsAdding(false); setEditingId(null); setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" }); setUploadProgress({}); setUploadedFiles([]); setUploadErrors({}); }}>
                 <X className="w-5 h-5" />
               </Button>
             </div>
             <form onSubmit={handleAdd} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Article Title</label>
+                <label className="text-sm font-semibold text-gray-700">
+                  Article Title <span className="text-red-600">*</span>
+                </label>
                 <Input
                   value={newArticle.title}
                   onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
                   placeholder="e.g. The Future of Sustainable Design"
+                  className={articleErrors.title ? "border-red-500" : ""}
                 />
-                {articleErrors.title && <div className="text-red-600 text-sm mt-1">{articleErrors.title}</div>}
+                {articleErrors.title && <p className="text-sm text-red-600">{articleErrors.title}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Content</label>
-                <ReactQuill
-                  value={newArticle.content}
-                  onChange={(html) => setNewArticle({ ...newArticle, content: html })}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      ['blockquote', 'code-block'],
-                      ['link', 'image'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['clean']
-                    ]
-                  }}
-                  theme="snow"
-                  style={{ height: '300px', marginBottom: '50px' }}
-                />
-                {articleErrors.content && <div className="text-red-600 text-sm mt-1">{articleErrors.content}</div>}
+                <label className="text-sm font-semibold text-gray-700">
+                  Content <span className="text-red-600">*</span>
+                </label>
+                <div className={articleErrors.content ? "border-2 border-red-500 rounded" : ""}>
+                  <ReactQuill
+                    value={newArticle.content}
+                    onChange={(html) => setNewArticle({ ...newArticle, content: html })}
+                    modules={{
+                      toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['clean']
+                      ]
+                    }}
+                    theme="snow"
+                    style={{ marginBottom: '50px' }}
+                  />
+                </div>
+                {articleErrors.content && <p className="text-sm text-red-600">{articleErrors.content}</p>}
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Select Magazine</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Select Magazine <span className="text-red-600">*</span>
+                  </label>
                   <Select
                     value={newArticle.magazineId}
                     onValueChange={(val) => setNewArticle({ ...newArticle, magazineId: val })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={articleErrors.magazineId ? "border-red-500" : ""}>
                       <SelectValue placeholder="Select Magazine" />
                     </SelectTrigger>
                     <SelectContent>
@@ -341,29 +341,35 @@ export function AdminArticles() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {articleErrors.magazineId && <div className="text-red-600 text-sm mt-1">{articleErrors.magazineId}</div>}
+                  {articleErrors.magazineId && <p className="text-sm text-red-600">{articleErrors.magazineId}</p>}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Publish Date</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Publish Date <span className="text-red-600">*</span>
+                  </label>
                   <Input
                     type="date"
                     value={newArticle.publishedAt}
                     onChange={(e) => setNewArticle({ ...newArticle, publishedAt: e.target.value })}
+                    className={articleErrors.publishedAt ? "border-red-500" : ""}
                   />
-                  {articleErrors.publishedAt && <div className="text-red-600 text-sm mt-1">{articleErrors.publishedAt}</div>}
+                  {articleErrors.publishedAt && <p className="text-sm text-red-600">{articleErrors.publishedAt}</p>}
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Cover Image</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Cover Image <span className="text-red-600">*</span>
+                  </label>
                   <div className="flex gap-4 items-start">
                     <div className="flex-1 space-y-2">
                       <Input
                         value={newArticle.coverImgUrl}
                         onChange={(e) => setNewArticle({ ...newArticle, coverImgUrl: e.target.value })}
                         placeholder="Paste Image URL..."
+                        className={articleErrors.coverImgUrl ? "border-red-500" : ""}
                       />
-                      {articleErrors.coverImgUrl && <div className="text-red-600 text-sm mt-1">{articleErrors.coverImgUrl}</div>}
+                      {articleErrors.coverImgUrl && <p className="text-sm text-red-600">{articleErrors.coverImgUrl}</p>}
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">OR</span>
                         <Button
@@ -428,11 +434,8 @@ export function AdminArticles() {
               <div className="flex gap-4 pt-4">
                 <Button
                   type="submit"
-                  className="flex-1 bg-blue-900 hover:bg-blue-800"
-                  disabled={
-                    !(newArticle.title.trim() && (newArticle.content.replace(/<[^>]*>/g, '').trim()) && newArticle.coverImgUrl.trim() && newArticle.magazineId && newArticle.publishedAt) ||
-                    Object.keys(uploadProgress).length > 0
-                  }
+                  className="flex-1 bg-blue-900 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isFormValid() || Object.keys(uploadProgress).length > 0}
                   title={Object.keys(uploadProgress).length > 0 ? 'Please wait for uploads to complete' : ''}
                 >
                   {Object.keys(uploadProgress).length > 0 ? 'Uploading...' : (editingId ? "Update Article" : "Publish Article")}
@@ -446,31 +449,31 @@ export function AdminArticles() {
         ) : (
           <>
             {/* Search and table container */}
-            <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search articles..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                  />
-                </div>
+          <div className="bg-white rounded-lg border-2 border-blue-200 p-6">
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search articles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                />
               </div>
+            </div>
 
-              <div className="overflow-x-auto">
-              <table className="w-full table-auto">
-                <thead className="bg-blue-50 border-b-2 border-blue-200">
-                  <tr>
-                    <th className="w-16 px-4 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
-                    <th className="max-w-[48ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
-                    <th className="max-w-[24ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Magazine</th>
-                    <th className="w-36 px-6 py-4 text-left text-sm font-semibold text-blue-900">Publish Date</th>
-                    <th className="w-20 px-6 py-4 text-center text-sm font-semibold text-blue-900">Views</th>
-                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Active</th>
-                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Published</th>
+            <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead className="bg-blue-50 border-b-2 border-blue-200">
+                <tr>
+                  <th className="w-16 px-4 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
+                  <th className="max-w-[48ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
+                  <th className="max-w-[24ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Magazine</th>
+                  <th className="w-36 px-6 py-4 text-left text-sm font-semibold text-blue-900">Publish Date</th>
+                  <th className="w-20 px-6 py-4 text-center text-sm font-semibold text-blue-900">Views</th>
+                  <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Active</th>
+                  <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Published</th>
                     <th className="w-36 px-6 py-4 text-right text-sm font-semibold text-blue-900">Actions</th>
                   </tr>
                 </thead>
