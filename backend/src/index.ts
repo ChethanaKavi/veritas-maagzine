@@ -14,155 +14,32 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+// Admin login - development helper. In production replace with proper user store.
+import authRouter from './routes/auth';
+import magazinesRouter from './routes/magazines';
+import articlesRouter from './routes/articles';
+import advertisementsRouter from './routes/advertisements';
+import miscRouter from './routes/misc';
+import uploadsRouter from './routes/uploads';
+import authMiddleware from './middleware/auth';
+
 // Provide a simple root route so visiting '/' returns a friendly message
 app.get('/', (req, res) => {
-  res.json({ ok: true, message: 'Backend is running. Try /health, /magazines or /articles' });
+  res.json({ ok: true, message: 'Backend is running. Try /health or /api/* endpoints' });
 });
 
-// Get all magazines
-app.get('/magazines', async (req, res) => {
-  const { published } = req.query;
-  try {
-    if (published === 'true') {
-      const magazines = await prisma.magazine.findMany({
-        where: {
-          isActive: true,
-          isPublished: true,
-        },
-        orderBy: {
-          publishedAt: 'desc',
-        },
-      });
-      res.json(magazines);
-    } else {
-      const magazines = await prisma.magazine.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-      res.json(magazines);
-    }
-  } catch (error) {
-    console.error('Error fetching magazines:', error);
-    res.status(500).json({ error: 'An error occurred while fetching magazines' });
-  }
-});
+// Mount modular routers at root. Vite dev proxy rewrites `/api/*` -> `/*` when forwarding,
+// so keep backend routes rooted at `/` to match requests from the dev server.
+app.use('/', authRouter);
+app.use('/', magazinesRouter);
+app.use('/', articlesRouter);
+app.use('/', advertisementsRouter);
+app.use('/', miscRouter);
+app.use('/', uploadsRouter);
 
-// Get a single magazine by ID
-app.get('/magazines/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const magazine = await prisma.magazine.findUnique({
-      where: { id },
-    });
-    if (magazine) {
-      res.json(magazine);
-    } else {
-      res.status(404).json({ error: 'Magazine not found' });
-    }
-  } catch (error) {
-    console.error(`Error fetching magazine ${id}:`, error);
-    res.status(500).json({ error: 'An error occurred while fetching the magazine' });
-  }
-});
-
-// Create a new magazine
-app.post('/magazines', async (req, res) => {
-  try {
-    const { title, description, coverImage, publishedAt } = req.body;
-    const publishedDate = publishedAt ? new Date(publishedAt) : null;
-    const isPublishedComputed = publishedDate ? publishedDate <= new Date() : false;
-    const newMagazine = await prisma.magazine.create({
-      data: {
-        title,
-        description,
-        coverImage,
-        publishedAt: publishedDate,
-        isPublished: isPublishedComputed,
-      },
-    });
-    res.status(201).json(newMagazine);
-  } catch (error) {
-    console.error('Error creating magazine:', error);
-    res.status(500).json({ error: 'An error occurred while creating the magazine' });
-  }
-});
-
-// Update a magazine
-app.put('/magazines/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const { title, description, coverImage, publishedAt } = req.body;
-    const publishedDate = publishedAt ? new Date(publishedAt) : null;
-    const isPublishedComputed = publishedDate ? publishedDate <= new Date() : false;
-    const updatedMagazine = await prisma.magazine.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        coverImage,
-        publishedAt: publishedDate,
-        isPublished: isPublishedComputed,
-      },
-    });
-    res.json(updatedMagazine);
-  } catch (error) {
-    console.error(`Error updating magazine ${id}:`, error);
-    res.status(500).json({ error: 'An error occurred while updating the magazine' });
-  }
-});
-
-// Soft delete a magazine
-app.delete('/magazines/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await prisma.magazine.update({
-      where: { id },
-      data: { isActive: false },
-    });
-    res.status(204).send();
-  } catch (error) {
-    console.error(`Error deleting magazine ${id}:`, error);
-    res.status(500).json({ error: 'An error occurred while deleting the magazine' });
-  }
-});
-
-// Activate a magazine
-app.post('/magazines/:id/activate', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const activatedMagazine = await prisma.magazine.update({
-      where: { id },
-      data: { isActive: true },
-    });
-    res.json(activatedMagazine);
-  } catch (error) {
-    console.error(`Error activating magazine ${id}:`, error);
-    res.status(500).json({ error: 'An error occurred while activating the magazine' });
-  }
-});
-
-// Get articles for a specific magazine
-app.get('/magazines/:magazineId/articles', async (req, res) => {
-  const { magazineId } = req.params;
-  try {
-    const articles = await prisma.article.findMany({
-      where: {
-        magazineId: magazineId,
-        isActive: true,
-        isPublished: true,
-      },
-      include: { views: true, magazine: true },
-      orderBy: {
-        publishedAt: 'desc',
-      },
-    });
-    res.json(articles);
-  } catch (error) {
-    console.error(`Error fetching articles for magazine ${magazineId}:`, error);
-    res.status(500).json({ error: 'An error occurred while fetching articles for the magazine' });
-  }
-});
+// Example of protecting admin-only API endpoints with middleware
+// Use `authMiddleware` on routes that require admin privileges, for example:
+// app.use('/api/admin', authMiddleware, adminRouter);
 
 app.get('/articles', async (req, res) => {
   const { published } = req.query;

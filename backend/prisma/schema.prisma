@@ -90,4 +90,15 @@ model AdminUser {
   role         String
   lastLogin    DateTime?
   createdAt    DateTime  @default(now())
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  adminUserId String?
+  adminUser   AdminUser? @relation(fields: [adminUserId], references: [id])
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  revoked     Boolean   @default(false)
 }

@@ -23,12 +23,12 @@ export function AdminAnalytics() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [artRes, magRes] = await Promise.all([
-          fetch(`${API_BASE}/articles`),
-          fetch(`${API_BASE}/magazines`),
-        ]);
-        if (artRes.ok) setArticles(await artRes.json());
-        if (magRes.ok) setMagazines(await magRes.json());
+          const [articlesRes, magazinesRes] = await Promise.all([
+            fetch(`/api/articles`),
+            fetch(`/api/magazines`),
+          ]);
+        if (articlesRes.ok) setArticles(await articlesRes.json());
+        if (magazinesRes.ok) setMagazines(await magazinesRes.json());
       } catch (e) {
         console.error("Failed to fetch analytics data", e);
       } finally {
@@ -45,7 +45,7 @@ export function AdminAnalytics() {
 
   const stats = [
     { label: "Total Page Views", value: totalPageViews.toLocaleString(), icon: Eye, color: "text-blue-600", bgColor: "bg-blue-100" },
-    { label: "Total Magazine Views", value: totalMagazineViews.toLocaleString(), icon: BookOpen, color: "text-green-600", bgColor: "bg-green-100" },
+    { label: "Total Magazines", value: magazines.length.toLocaleString(), icon: BookOpen, color: "text-green-600", bgColor: "bg-green-100" },
     { label: "Total Article Views", value: totalArticleViews.toLocaleString(), icon: TrendingUp, color: "text-purple-600", bgColor: "bg-purple-100" },
     { label: "Total Articles", value: articles.length.toLocaleString(), icon: FileText, color: "text-indigo-600", bgColor: "bg-indigo-100" },
   ];

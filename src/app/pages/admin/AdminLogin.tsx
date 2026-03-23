@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../../contexts/AdminAuthContext";
 import { LogIn, Lock, User } from "lucide-react";
@@ -7,14 +7,18 @@ export function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAdminAuth();
+  const { login, isAdminAuthenticated } = useAdminAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // redirect authenticated users away from login
+  useEffect(() => {
+    if (isAdminAuthenticated) navigate('/admin/dashboard', { replace: true });
+  }, [isAdminAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    const success = login(username, password);
+    const success = await login(username, password);
     if (success) {
       navigate("/admin/dashboard");
     } else {
@@ -88,12 +92,7 @@ export function AdminLogin() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-2">Demo Credentials:</p>
-            <p className="text-xs text-gray-600">Username: admin</p>
-            <p className="text-xs text-gray-600">Password: admin123</p>
-          </div>
+          {/* Demo credentials removed — use real admin credentials */}
         </div>
       </div>
     </div>

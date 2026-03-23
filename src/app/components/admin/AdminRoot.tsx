@@ -1,11 +1,14 @@
 import { Outlet } from "react-router";
+import { AdminDataProvider } from "../../contexts/AdminDataContext";
 
 export function AdminRoot() {
   return (
-    <div>
-      <main>
-        <Outlet />
-      </main>
-    </div>
+    <AdminDataProvider>
+      <div>
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    </AdminDataProvider>
   );
 }

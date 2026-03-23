@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Navigate, Link } from "react-router-dom";
 import { ArticleCard } from "../components/ArticleCard";
 import { CircularCarousel } from "../components/CircularCarousel";
+import { Loading } from "../components/Loading";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function MagazineDetail() {
@@ -69,7 +70,11 @@ export function MagazineDetail() {
   }, [magazine?.id]);
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto px-4 py-6">Loading...</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <Loading message="Loading magazine..." />
+      </div>
+    );
   }
 
   if (error || !magazine) {

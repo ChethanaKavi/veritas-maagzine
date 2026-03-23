@@ -2,6 +2,7 @@ import { useParams, Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Advertisement } from "../components/Advertisement";
 import { Clock, User, Calendar } from "lucide-react";
+import { Loading } from "../components/Loading";
 
 export function ArticleDetail() {
   const { id } = useParams();
@@ -34,7 +35,7 @@ export function ArticleDetail() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [id]);
 
-  if (loading) return <div className="max-w-4xl mx-auto px-4 py-12">Loading...</div>;
+  if (loading) return <div className="max-w-4xl mx-auto px-4 py-12"><Loading message="Loading article details..." /></div>;
   if (!article) return <Navigate to="/articles" replace />;
 
   return (
@@ -42,7 +43,7 @@ export function ArticleDetail() {
 
       {/* Article Header */}
       <article>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-blue-900">{article.title}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-blue-900 break-words break-all whitespace-normal">{article.title}</h1>
         <p className="text-xl text-gray-600 mb-6">{article.excerpt || ''}</p>
 
         {/* Article Meta */}
@@ -59,11 +60,11 @@ export function ArticleDetail() {
 
         {/* Featured Image */}
         {article.coverImgUrl && (
-        <div className="mb-8 rounded-lg overflow-hidden border-4 border-blue-100">
+        <div className="mb-8 rounded-lg overflow-hidden border-2 border-blue-100 flex justify-center">
           <img
             src={article.coverImgUrl}
             alt={article.title}
-            className="w-full h-auto"
+            className="w-full max-w-2xl h-auto max-h-[260px] md:max-h-[360px] lg:max-h-[420px] object-contain mx-auto"
           />
         </div>
         )}

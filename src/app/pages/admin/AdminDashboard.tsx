@@ -19,7 +19,7 @@ export function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch("/api/dashboard-stats");
+        const response = await (await import("../../utils/api")).apiFetch("/api/dashboard-stats");
         if (!response.ok) {
           throw new Error("Failed to fetch dashboard data");
         }
@@ -115,7 +115,7 @@ export function AdminDashboard() {
               {recentArticles.map((article) => (
                 <div
                   key={article.id}
-                  className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
+                  className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0"
                 >
                   {article.coverImgUrl ? (
                     <img
@@ -128,8 +128,8 @@ export function AdminDashboard() {
                       <FileText className="w-8 h-8 text-blue-300" />
                     </div>
                   )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-blue-900 mb-1 line-clamp-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-blue-900 mb-1 line-clamp-2 break-words truncate">
                       {article.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
@@ -154,7 +154,7 @@ export function AdminDashboard() {
               {recentMagazines.map((magazine) => (
                 <div
                   key={magazine.id}
-                  className="flex gap-4 pb-4 border-b border-gray-200 last:border-0"
+                  className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0"
                 >
                   {magazine.coverImage ? (
                     <img
@@ -167,8 +167,8 @@ export function AdminDashboard() {
                       <BookOpen className="w-6 h-6 text-blue-300" />
                     </div>
                   )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-blue-900 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-blue-900 mb-1 line-clamp-2 break-words truncate">
                       {magazine.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { Plus, Edit, Trash2, Eye, Search, X, RotateCw } from "lucide-react";
-import { magazines as mockMagazines } from "../../data/mockData";
+import { useAdminData } from "../../contexts/AdminDataContext";
 import {
   Dialog,
   DialogContent,
@@ -15,36 +15,10 @@ import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
-
 export function AdminMagazines() {
+  const { magazines: magList, updateMagazine, addMagazine, deleteMagazine } = useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [magList, setMagList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  // Load magazines from API on mount
-  useEffect(() => {
-    const fetchMagazines = async () => {
-      try {
-        console.log('Fetching magazines from:', `${API_BASE}/magazines`);
-        const res = await fetch(`${API_BASE}/magazines`);
-        console.log('Response status:', res.status);
-        if (res.ok) {
-          const data = await res.json();
-          console.log('Magazines fetched:', data);
-          setMagList(Array.isArray(data) ? data : []);
-        } else {
-          const errorText = await res.text();
-          console.error('Failed to fetch magazines:', res.status, errorText);
-        }
-      } catch (err) {
-        console.error('Failed to fetch magazines', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMagazines();
-  }, []);
   const [newMag, setNewMag] = useState({
     title: "",
     description: "",
@@ -56,6 +30,9 @@ export function AdminMagazines() {
   const [confirmDeleteMag, setConfirmDeleteMag] = useState<any | null>(null);
   const [confirmActivateMag, setConfirmActivateMag] = useState<any | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ [k: string]: number }>({});
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [uploadErrors, setUploadErrors] = useState<{ [k: string]: string }>({});
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,6 +56,14 @@ export function AdminMagazines() {
     if (!newMag.publishedAt) errors.publishedAt = 'Publish date is required';
     setMagErrors(errors);
     if (Object.keys(errors).length > 0) return;
+
+    // Prevent saving while any uploads are still in progress
+    const pending = Object.values(uploadProgress).some((v) => typeof v === 'number' && v < 100);
+    if (pending) {
+      setMagErrors((prev) => ({ ...prev, general: 'Please wait for uploads to finish before saving.' }));
+      return;
+    }
+
     const payload = {
       ...newMag,
       publishedAt: newMag.publishedAt
@@ -87,14 +72,14 @@ export function AdminMagazines() {
     };
     try {
       let res;
-      if (editingId) {
-        res = await fetch(`${API_BASE}/magazines/${editingId}`, {
+        if (editingId) {
+        res = await fetch(`/api/magazines/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch(`${API_BASE}/magazines`, {
+        res = await fetch(`/api/magazines`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -103,9 +88,9 @@ export function AdminMagazines() {
       if (res.ok) {
         const saved = await res.json();
         if (editingId) {
-          setMagList((prev) => prev.map((m) => (m.cmmuanId === editingId ? saved : m)));
+          updateMagazine(editingId, saved);
         } else {
-          setMagList((prev) => [saved, ...prev]);
+          addMagazine(saved);
         }
       } else {
         console.error('Failed to save magazine');
@@ -143,15 +128,11 @@ export function AdminMagazines() {
   const confirmDelete = async () => {
     if (!confirmDeleteMag) return;
     try {
-      const res = await fetch(`${API_BASE}/magazines/${confirmDeleteMag.id}`, {
+      const res = await fetch(`/api/magazines/${confirmDeleteMag.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setMagList((prev) =>
-          prev.map((m) =>
-            m.id === confirmDeleteMag.id ? { ...m, isActive: false } : m
-          )
-        );
+        deleteMagazine(confirmDeleteMag.id);
       }
     } catch (e) {
       console.error('Failed to deactivate', e);
@@ -166,13 +147,13 @@ export function AdminMagazines() {
   const confirmActivate = async () => {
     if (!confirmActivateMag) return;
     try {
-      const res = await fetch(`${API_BASE}/magazines/${confirmActivateMag.id}/activate`, {
+      const res = await fetch(`/api/magazines/${confirmActivateMag.id}/activate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       if (res.ok) {
         const updated = await res.json();
-        setMagList((prev) => prev.map((m) => (m.id === confirmActivateMag.id ? updated : m)));
+        updateMagazine(confirmActivateMag.id, updated);
       }
     } catch (e) {
       console.error('Failed to activate', e);
@@ -180,16 +161,83 @@ export function AdminMagazines() {
     setConfirmActivateMag(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setNewMag({ ...newMag, coverImage: result });
+  const uploadFileXHR = (file: File, onProgress: (p: number) => void) => {
+    return new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append('file', file);
+      xhr.open('POST', '/api/uploads');
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          onProgress(pct);
+        }
       };
-      reader.readAsDataURL(file);
+      xhr.onload = () => {
+        try {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const data = JSON.parse(xhr.responseText);
+            console.debug(`Upload successful for ${file.name}:`, data);
+            resolve(data);
+          } else {
+            const errMsg = xhr.responseText ? JSON.parse(xhr.responseText).error : `Upload failed with status ${xhr.status}`;
+            console.error(`Upload failed for ${file.name}:`, errMsg);
+            reject(new Error(errMsg));
+          }
+        } catch (err) {
+          console.error('Parse error in upload response:', err);
+          reject(err);
+        }
+      };
+      xhr.onerror = () => {
+        const msg = 'Network error during upload';
+        console.error(msg, file.name);
+        reject(new Error(msg));
+      };
+      xhr.send(fd);
+    });
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    setUploadErrors({}); // clear previous errors
+    
+    for (const file of files) {
+      setUploadProgress((p) => ({ ...p, [file.name]: 0 }));
+      try {
+        console.debug(`Starting upload for ${file.name}...`);
+        const res = await uploadFileXHR(file, (pct) => {
+          setUploadProgress((p) => ({ ...p, [file.name]: pct }));
+          console.debug(`Upload progress for ${file.name}: ${pct}%`);
+        });
+        setUploadedFiles((prev) => [...prev, { name: file.name, url: res.secure_url, public_id: res.public_id }]);
+        // set first uploaded as cover image
+        setNewMag((prev) => ({ ...prev, coverImage: res.secure_url }));
+        // clear progress after complete
+        setUploadProgress((p) => {
+          const newP = { ...p };
+          delete newP[file.name];
+          return newP;
+        });
+      } catch (err: any) {
+        const errMsg = err?.message || 'Unknown error';
+        console.error(`Upload failed for ${file.name}:`, errMsg);
+        setUploadErrors((prev) => ({ ...prev, [file.name]: errMsg }));
+        setUploadProgress((p) => {
+          const newP = { ...p };
+          delete newP[file.name];
+          return newP;
+        });
+      }
     }
+    // clear the input
+    (e.target as HTMLInputElement).value = '';
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFilesSelected(e);
   };
 
   const filteredMagazines = magList.filter((magazine) =>
@@ -284,22 +332,48 @@ export function AdminMagazines() {
                         <input
                           id="cover-upload"
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/*"
+                          multiple
                           className="hidden"
                           onChange={handleImageChange}
                         />
                       </div>
                     </div>
-                    {newMag.coverImage && (
-                      <div className="relative w-24 aspect-[3/4] rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50 flex-shrink-0">
-                        <img src={newMag.coverImage} alt="Preview" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setNewMag({ ...newMag, coverImage: "" })}
-                          className="absolute top-1 right-1 p-1 bg-white/80 rounded-full hover:bg-white transition-colors"
-                        >
-                          <X className="w-3 h-3 text-red-500" />
-                        </button>
+                    <div className="flex flex-col gap-2">
+                      {uploadedFiles.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {uploadedFiles.map((f) => (
+                            <div key={f.public_id} className="w-20">
+                              <img src={f.url} alt={f.name} className="w-20 h-24 object-cover rounded border-2 border-blue-100" />
+                              <div className="flex gap-1 mt-1">
+                                <button type="button" className="text-xs px-2 py-1 border rounded" onClick={() => setNewMag((p) => ({ ...p, coverImage: f.url }))}>Use</button>
+                                <button type="button" className="text-xs px-2 py-1 border rounded" onClick={() => setUploadedFiles((prev) => prev.filter((x) => x.public_id !== f.public_id))}>Remove</button>
+                              </div>
+                              {uploadProgress[f.name] != null && (
+                                <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                                  <div className="bg-blue-600 h-2 rounded" style={{ width: `${uploadProgress[f.name]}%` }} />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Status & Errors */}
+                    {Object.keys(uploadProgress).length > 0 && (
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded text-sm text-yellow-700">
+                        ⏳ Uploading {Object.keys(uploadProgress).length} file(s)... Please wait before saving.
+                      </div>
+                    )}
+                    {Object.keys(uploadErrors).length > 0 && (
+                      <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded text-sm text-red-700">
+                        <p className="font-semibold">Upload Errors:</p>
+                        <ul className="mt-1">
+                          {Object.entries(uploadErrors).map(([file, err]) => (
+                            <li key={file}>• {file}: {err}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>
@@ -310,11 +384,15 @@ export function AdminMagazines() {
                 <Button
                   type="submit"
                   className="flex-1 bg-blue-900 hover:bg-blue-800"
-                  disabled={!(newMag.title.trim() && newMag.description.trim() && newMag.publishedAt)}
+                  disabled={
+                    !(newMag.title.trim() && newMag.description.trim() && newMag.publishedAt) ||
+                    Object.keys(uploadProgress).length > 0
+                  }
+                  title={Object.keys(uploadProgress).length > 0 ? 'Please wait for uploads to complete' : ''}
                 >
-                  {editingId ? "Update Magazine" : "Create Magazine"}
+                  {Object.keys(uploadProgress).length > 0 ? 'Uploading...' : (editingId ? "Update Magazine" : "Create Magazine")}
                 </Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setEditingId(null); setNewMag({ title: "", description: "", coverImage: "", publishedAt: "" }); }}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setEditingId(null); setNewMag({ title: "", description: "", coverImage: "", publishedAt: "" }); setUploadProgress({}); setUploadedFiles([]); setUploadErrors({}); }}>
                   Cancel
                 </Button>
               </div>
@@ -337,22 +415,23 @@ export function AdminMagazines() {
                 </div>
               </div>
 
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full table-auto">
                 <thead className="bg-blue-50 border-b-2 border-blue-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Published Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Views</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Published</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-blue-900">Actions</th>
+                    <th className="w-16 px-4 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
+                    <th className="max-w-[48ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
+                    <th className="w-36 px-6 py-4 text-left text-sm font-semibold text-blue-900">Published Date</th>
+                    <th className="w-20 px-6 py-4 text-center text-sm font-semibold text-blue-900">Views</th>
+                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Status</th>
+                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Published</th>
+                    <th className="w-36 px-6 py-4 text-right text-sm font-semibold text-blue-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredMagazines.map((magazine, index) => (
                     <tr key={magazine.id || `mag-${index}`} className="hover:bg-blue-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         {magazine.coverImage && (
                           <img
                             src={magazine.coverImage}
@@ -361,20 +440,20 @@ export function AdminMagazines() {
                           />
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-blue-900">{magazine.title}</div>
+                      <td className="px-6 py-4 max-w-[48ch]">
+                        <div className="font-semibold text-blue-900 whitespace-normal break-words line-clamp-2">{magazine.title}</div>
                         <div className="text-sm text-gray-600 line-clamp-2">{magazine.description}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{magazine.publishedAt ? new Date(magazine.publishedAt).toLocaleDateString() : 'N/A'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">—</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-sm text-gray-600 text-center">—</td>
+                      <td className="px-6 py-4 text-center">
                         {magazine.isActive === false ? (
                           <span className="inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded">Inactive</span>
                         ) : (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Active</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {(magazine.publishedAt && new Date(magazine.publishedAt) <= new Date()) ? (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Yes</span>
                         ) : (
@@ -404,6 +483,7 @@ export function AdminMagazines() {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           </>
         )}

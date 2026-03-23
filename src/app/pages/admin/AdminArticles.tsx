@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, Eye, Search, X, Upload, RotateCw } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { articles as mockArticles, magazines as mockMagazines } from "../../data/mockData";
+import { useAdminData } from "../../contexts/AdminDataContext";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +23,10 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
-
 export function AdminArticles() {
+  const { articles: articleList, magazines: magazineList, updateArticle, addArticle, deleteArticle } = useAdminData();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [articleList, setArticleList] = useState<any[]>([]);
-  const [magazineList, setMagazineList] = useState<any[]>([]);
   const [newArticle, setNewArticle] = useState({
     title: "",
     content: "",
@@ -43,32 +40,12 @@ export function AdminArticles() {
   const [confirmDeleteArticle, setConfirmDeleteArticle] = useState<any | null>(null);
   const [confirmActivateArticle, setConfirmActivateArticle] = useState<any | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ [k: string]: number }>({});
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [uploadErrors, setUploadErrors] = useState<{ [k: string]: string }>({});
 
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Load articles and magazines from API on mount
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const [articlesRes, magazinesRes] = await Promise.all([
-          fetch(`${API_BASE}/articles`),
-          fetch(`${API_BASE}/magazines`)
-        ]);
-        if (articlesRes.ok) {
-          const data = await articlesRes.json();
-          setArticleList(Array.isArray(data) ? data : []);
-        }
-        if (magazinesRes.ok) {
-          const data = await magazinesRes.json();
-          setMagazineList(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch articles/magazines', err);
-      }
-    };
-    fetchArticles();
-  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -90,6 +67,13 @@ export function AdminArticles() {
     if (!newArticle.publishedAt) errors.publishedAt = 'Publish date is required';
     setArticleErrors(errors);
     if (Object.keys(errors).length > 0) return;
+
+    // Prevent saving while any uploads are still in progress
+    const pending = Object.values(uploadProgress).some((v) => typeof v === 'number' && v < 100);
+    if (pending) {
+      setArticleErrors((prev) => ({ ...prev, general: 'Please wait for uploads to finish before saving.' }));
+      return;
+    }
     
     const payload = {
       ...newArticle,
@@ -101,13 +85,13 @@ export function AdminArticles() {
     try {
       let res;
       if (editingId) {
-        res = await fetch(`${API_BASE}/articles/${editingId}`, {
+        res = await fetch(`/api/articles/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch(`${API_BASE}/articles`, {
+        res = await fetch(`/api/articles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -117,9 +101,9 @@ export function AdminArticles() {
       if (res.ok) {
         const saved = await res.json();
         if (editingId) {
-          setArticleList((prev) => prev.map((a) => (a.id === editingId ? saved : a)));
+          updateArticle(editingId, saved);
         } else {
-          setArticleList((prev) => [saved, ...prev]);
+          addArticle(saved);
         }
         setIsAdding(false);
         setEditingId(null);
@@ -157,15 +141,11 @@ export function AdminArticles() {
   const confirmDelete = async () => {
     if (!confirmDeleteArticle) return;
     try {
-      const res = await fetch(`${API_BASE}/articles/${confirmDeleteArticle.id}`, {
+      const res = await fetch(`/api/articles/${confirmDeleteArticle.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setArticleList((prev) =>
-          prev.map((a) =>
-            a.id === confirmDeleteArticle.id ? { ...a, active: false } : a
-          )
-        );
+        deleteArticle(confirmDeleteArticle.id);
       }
     } catch (e) {
       console.error('Failed to deactivate', e);
@@ -180,14 +160,14 @@ export function AdminArticles() {
   const confirmActivate = async () => {
     if (!confirmActivateArticle) return;
     try {
-      const res = await fetch(`${API_BASE}/articles/${confirmActivateArticle.id}/activate`, {
+      const res = await fetch(`/api/articles/${confirmActivateArticle.id}/activate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: true }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setArticleList((prev) => prev.map((a) => (a.id === confirmActivateArticle.id ? updated : a)));
+        updateArticle(confirmActivateArticle.id, updated);
       }
     } catch (e) {
       console.error('Failed to activate', e);
@@ -195,16 +175,79 @@ export function AdminArticles() {
     setConfirmActivateArticle(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setNewArticle({ ...newArticle, coverImgUrl: result });
+  const uploadFileXHR = (file: File, onProgress: (p: number) => void) => {
+    return new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const fd = new FormData();
+      fd.append('file', file);
+      xhr.open('POST', '/api/uploads');
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          onProgress(pct);
+        }
       };
-      reader.readAsDataURL(file);
+      xhr.onload = () => {
+        try {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const data = JSON.parse(xhr.responseText);
+            console.debug(`Upload successful for ${file.name}:`, data);
+            resolve(data);
+          } else {
+            const errMsg = xhr.responseText ? JSON.parse(xhr.responseText).error : `Upload failed with status ${xhr.status}`;
+            console.error(`Upload failed for ${file.name}:`, errMsg);
+            reject(new Error(errMsg));
+          }
+        } catch (err) {
+          console.error('Parse error in upload response:', err);
+          reject(err);
+        }
+      };
+      xhr.onerror = () => {
+        const msg = 'Network error during upload';
+        console.error(msg, file.name);
+        reject(new Error(msg));
+      };
+      xhr.send(fd);
+    });
+  };
+
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    setUploadErrors({}); // clear previous errors
+    
+    for (const file of files) {
+      setUploadProgress((p) => ({ ...p, [file.name]: 0 }));
+      try {
+        console.debug(`Starting upload for ${file.name}...`);
+        const res = await uploadFileXHR(file, (pct) => {
+          setUploadProgress((p) => ({ ...p, [file.name]: pct }));
+          console.debug(`Upload progress for ${file.name}: ${pct}%`);
+        });
+        setUploadedFiles((prev) => [...prev, { name: file.name, url: res.secure_url, public_id: res.public_id }]);
+        // set first uploaded as cover image
+        setNewArticle((prev) => ({ ...prev, coverImgUrl: res.secure_url }));
+        // clear progress after complete
+        setUploadProgress((p) => {
+          const newP = { ...p };
+          delete newP[file.name];
+          return newP;
+        });
+      } catch (err: any) {
+        const errMsg = err?.message || 'Unknown error';
+        console.error(`Upload failed for ${file.name}:`, errMsg);
+        setUploadErrors((prev) => ({ ...prev, [file.name]: errMsg }));
+        setUploadProgress((p) => {
+          const newP = { ...p };
+          delete newP[file.name];
+          return newP;
+        });
+      }
     }
+    // clear the input
+    (e.target as HTMLInputElement).value = '';
   };
 
   const filteredArticles = articleList.filter((article) =>
@@ -335,22 +378,48 @@ export function AdminArticles() {
                         <input
                           id="cover-upload"
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/*"
+                          multiple
                           className="hidden"
-                          onChange={handleImageChange}
+                          onChange={handleFilesSelected}
                         />
                       </div>
                     </div>
-                    {newArticle.coverImgUrl && (
-                      <div className="relative w-24 aspect-[3/4] rounded-lg overflow-hidden border-2 border-blue-100 bg-gray-50 flex-shrink-0">
-                        <img src={newArticle.coverImgUrl} alt="Preview" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setNewArticle({ ...newArticle, coverImgUrl: "" })}
-                          className="absolute top-1 right-1 p-1 bg-white/80 rounded-full hover:bg-white transition-colors"
-                        >
-                          <X className="w-3 h-3 text-red-500" />
-                        </button>
+                    <div className="flex flex-col gap-2">
+                      {uploadedFiles.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {uploadedFiles.map((f) => (
+                            <div key={f.public_id} className="w-20">
+                              <img src={f.url} alt={f.name} className="w-20 h-24 object-cover rounded border-2 border-blue-100" />
+                              <div className="flex gap-1 mt-1">
+                                <button type="button" className="text-xs px-2 py-1 border rounded" onClick={() => setNewArticle((p) => ({ ...p, coverImgUrl: f.url }))}>Use</button>
+                                <button type="button" className="text-xs px-2 py-1 border rounded" onClick={() => setUploadedFiles((prev) => prev.filter((x) => x.public_id !== f.public_id))}>Remove</button>
+                              </div>
+                              {uploadProgress[f.name] != null && (
+                                <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                                  <div className="bg-blue-600 h-2 rounded" style={{ width: `${uploadProgress[f.name]}%` }} />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Status & Errors */}
+                    {Object.keys(uploadProgress).length > 0 && (
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded text-sm text-yellow-700">
+                        ⏳ Uploading {Object.keys(uploadProgress).length} file(s)... Please wait before saving.
+                      </div>
+                    )}
+                    {Object.keys(uploadErrors).length > 0 && (
+                      <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded text-sm text-red-700">
+                        <p className="font-semibold">Upload Errors:</p>
+                        <ul className="mt-1">
+                          {Object.entries(uploadErrors).map(([file, err]) => (
+                            <li key={file}>• {file}: {err}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>
@@ -360,11 +429,15 @@ export function AdminArticles() {
                 <Button
                   type="submit"
                   className="flex-1 bg-blue-900 hover:bg-blue-800"
-                  disabled={!(newArticle.title.trim() && (newArticle.content.replace(/<[^>]*>/g, '').trim()) && newArticle.coverImgUrl.trim() && newArticle.magazineId && newArticle.publishedAt)}
+                  disabled={
+                    !(newArticle.title.trim() && (newArticle.content.replace(/<[^>]*>/g, '').trim()) && newArticle.coverImgUrl.trim() && newArticle.magazineId && newArticle.publishedAt) ||
+                    Object.keys(uploadProgress).length > 0
+                  }
+                  title={Object.keys(uploadProgress).length > 0 ? 'Please wait for uploads to complete' : ''}
                 >
-                  {editingId ? "Update Article" : "Publish Article"}
+                  {Object.keys(uploadProgress).length > 0 ? 'Uploading...' : (editingId ? "Update Article" : "Publish Article")}
                 </Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setEditingId(null); setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" }); }}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => { setIsAdding(false); setEditingId(null); setNewArticle({ title: "", content: "", coverImgUrl: "", magazineId: "", authorId: "", publishedAt: "" }); setUploadProgress({}); setUploadedFiles([]); setUploadErrors({}); }}>
                   Cancel
                 </Button>
               </div>
@@ -387,23 +460,24 @@ export function AdminArticles() {
                 </div>
               </div>
 
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full table-auto">
                 <thead className="bg-blue-50 border-b-2 border-blue-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Magazine</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Publish Date</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Views</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Active</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-blue-900">Published</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-blue-900">Actions</th>
+                    <th className="w-16 px-4 py-4 text-left text-sm font-semibold text-blue-900">Cover</th>
+                    <th className="max-w-[48ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Title</th>
+                    <th className="max-w-[24ch] px-6 py-4 text-left text-sm font-semibold text-blue-900">Magazine</th>
+                    <th className="w-36 px-6 py-4 text-left text-sm font-semibold text-blue-900">Publish Date</th>
+                    <th className="w-20 px-6 py-4 text-center text-sm font-semibold text-blue-900">Views</th>
+                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Active</th>
+                    <th className="w-24 px-6 py-4 text-center text-sm font-semibold text-blue-900">Published</th>
+                    <th className="w-36 px-6 py-4 text-right text-sm font-semibold text-blue-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredArticles.map((article, index) => (
                     <tr key={article.id || `art-${index}`} className="hover:bg-blue-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         {article.coverImgUrl && (
                           <img
                             src={article.coverImgUrl}
@@ -413,21 +487,21 @@ export function AdminArticles() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-blue-900">{article.title}</div>
+                        <div className="font-semibold text-blue-900 whitespace-normal break-words line-clamp-2 max-w-[48ch]">{article.title}</div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[24ch]">
                         {article.magazine?.title || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'N/A'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{typeof article.viewCount === 'number' ? article.viewCount : 0}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-sm text-gray-600 text-center">{typeof article.viewCount === 'number' ? article.viewCount : 0}</td>
+                      <td className="px-6 py-4 text-center">
                         {article.active === false ? (
                           <span className="inline-block bg-red-100 text-red-700 text-xs px-2 py-1 rounded">Inactive</span>
                         ) : (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Active</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         {(article.publishedAt && new Date(article.publishedAt) <= new Date()) ? (
                           <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded">Yes</span>
                         ) : (
@@ -457,6 +531,7 @@ export function AdminArticles() {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           </>
         )}

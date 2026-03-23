@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import { Navigate } from "react-router-dom";
 import { Root } from "./components/Root";
 import { Home } from "./pages/Home";
 import { Magazines } from "./pages/Magazines";
@@ -8,6 +9,7 @@ import { ArticleDetail } from "./pages/ArticleDetail";
 import { MagazineDetail } from "./pages/MagazineDetail";
 import { NotFound } from "./pages/NotFound";
 import { AdminRoot } from "./components/admin/AdminRoot";
+import { ProtectedRoute } from "./components/admin/ProtectedRoute";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { AdminMagazines } from "./pages/admin/AdminMagazines";
@@ -35,13 +37,18 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    Component: AdminRoot,
+    element: (
+      <ProtectedRoute>
+        <AdminRoot />
+      </ProtectedRoute>
+    ),
     children: [
       { path: "dashboard", Component: AdminDashboard },
       { path: "magazines", Component: AdminMagazines },
       { path: "articles", Component: AdminArticles },
       { path: "advertisements", Component: AdminAdvertisements },
       { path: "analytics", Component: AdminAnalytics },
+      { path: "*", element: <Navigate to="/admin/login" replace /> },
     ],
   },
 ]);
